@@ -1,33 +1,28 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T12:45:00Z
+Last Updated: 2026-01-16T13:00:00Z
 
-## Session: Implementation of Stress Mode & Auto-Save
+## Session: Implementation of Rhyme Schemes
 
 ### Completed
-- Feature F005: Stress Highlighting
-  - Backend analyzes stress patterns via Gemini.
-  - Frontend renders **bold** syllables in a separate view.
-- Feature F011: Auto-Save
-  - Implemented `SongUpdate` and `PUT` endpoint.
-  - Frontend debounces saves (2s) and updates "Last saved" indicator.
-  - Fixed accidental deletion of `create_song` endpoint during refactor.
+- Feature F006: Rhyme Scheme Setup
+  - Backend: Updated `stream_lyrics` to inject rhyme scheme instruction into prompt.
+  - Frontend: Added dropdown to select "Free Verse", "AABB", "ABAB", "ABBA".
+  - Frontend: Passes selection to streaming API.
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Implemented backend and frontend logic for both features.
-  - Resolved regression in `songs.py`.
-  - Verified with tests.
+  - Updated AI Service, API, API Client, and UI.
+  - Integration verified manually via code path analysis (API receives param -> Prompt updated).
 
 ### Context for Next Agent
 - **Priority:**
-  - F006: Rhyme Scheme Setup (Architect Agent).
-  - F007: Anti-Cliché Filter.
+  - F007: Anti-Cliché Filter - Final "Ghostwriter" refinement.
+  - F013/F014: Song Management (Rename/Delete) - Housekeeping features.
 - **Notes:**
-  - The core editor is now very functional (Writes, Counts, Highlights, Saves).
-  - Next steps focus on "refining" the output (Architecture/Rhymes and Quality/Cliché).
+  - The AI is now directed by Vibe, Style, and Rhyme Scheme.
 
 ## File Summary
-- backend/api/songs.py: Full song management
-- backend/api/utils.py: Syllables & Stress
-- frontend/src/app/songs/[id]/page.tsx: Robust Editor
+- backend/ai.py: Prompt logic
+- backend/api/songs.py: Endpoint updates
+- frontend/src/app/songs/[id]/page.tsx: Editor UI updates

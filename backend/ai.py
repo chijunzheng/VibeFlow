@@ -1,6 +1,7 @@
 from google import genai
 from google.genai import types
 from backend.config import settings
+from backend.constants import BANNED_AI_WORDS
 import json
 import logging
 from typing import List
@@ -62,6 +63,8 @@ class AIService:
             raise Exception("Gemini API Key not configured")
         
         anchors_str = ", ".join(vibe_cloud)
+        banned_str = ", ".join(BANNED_AI_WORDS)
+        
         prompt = (
             f"Title: {title}\n"
             f"Vibe Cloud Anchors: {anchors_str}\n"
@@ -74,8 +77,8 @@ class AIService:
             "You are 'The Ghostwriter', a top-tier lyricist. "
             "Write lyrics that strictly incorporate the provided 'Vibe Cloud' anchors to ensure concrete imagery. "
             "Follow the requested Rhyme Scheme if specified (e.g., AABB, ABAB). "
-            "Avoid 'AI-isms' (shimmering, tapestry, embrace, whisper). "
-            "Use a conversational, raw, and modern tone. "
+            f"CRITICAL: Avoid these AI-isms and clichés: {banned_str}. "
+            "Use a conversational, raw, and modern tone. Favor concrete nouns over abstract adjectives. "
             "Structure: [Verse] then [Chorus]. "
             "Return ONLY the lyrics."
         )

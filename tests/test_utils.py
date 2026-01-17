@@ -19,3 +19,15 @@ def test_empty_syllables():
     assert response.status_code == 200
     assert response.json() == []
 
+def test_check_cliches():
+    """Test the cliché checker utility."""
+    from backend.utils import check_cliches
+    text = "The shimmering starlight in the tapestry of time."
+    found = check_cliches(text)
+    assert "shimmering" in found
+    assert "starlight" in found
+    assert "tapestry" in found
+    
+    clean_text = "The rain hits the concrete and the tires hum."
+    assert check_cliches(clean_text) == []
+

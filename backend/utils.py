@@ -1,6 +1,19 @@
 import syllapy
 import re
 
+from backend.constants import BANNED_AI_WORDS
+
+def check_cliches(text: str) -> list[str]:
+    """
+    Returns a list of banned words found in the text.
+    """
+    found = []
+    text_lower = text.lower()
+    for word in BANNED_AI_WORDS:
+        if word in text_lower:
+            found.append(word)
+    return found
+
 def count_syllables_in_line(line: str) -> int:
     """
     Counts syllables in a single line of text.
