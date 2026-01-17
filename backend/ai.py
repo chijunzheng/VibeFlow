@@ -9,8 +9,8 @@ from typing import List, Dict, Generator
 logger = logging.getLogger("vibeflow.ai")
 
 # Using Gemini 3 models as per spec
-MODEL_FLASH = "gemini-3-flash"
-MODEL_PRO = "gemini-3-pro"
+MODEL_FLASH = "gemini-3-flash-preview"
+MODEL_PRO = "gemini-3-pro-preview"
 
 class AIService:
     def __init__(self):
@@ -25,8 +25,14 @@ class AIService:
         if not self.client: raise Exception("Gemini API Key not configured")
         
         system_instruction = (
-            "You are 'The Sensory Scout'. Expand the seed concept into 5 distinct, cinematic sensory snapshots. "
-            "Focus on physical actions and tangible settings. Return ONLY a JSON array of 5 strings."
+            "You are 'The Sensory Scout'. Your job is to brainstorm 5 concrete 'Vibe Anchors' for a song based on the user's input."
+            "\n\nRULES:"
+            "\n1. **Concrete Images Only:** No abstract concepts ('infinity', 'soul'). Give me the *movie prop* or the *setting* (e.g., 'A flickering neon sign', 'Dust on a dashboard', 'Cold coffee')."
+            "\n2. **Keep it Short:** Max 6 words per anchor. These are building blocks, not finished lyrics."
+            "\n3. **Universal Applicability:** Whether the user says 'Love', 'Cyberpunk', or 'Sadness', give me the *physical evidence* of that theme."
+            "\n4. **No Purple Prose:** Do not use adjectives like 'shimmering', 'tapestry', 'crystalline'. Keep it raw and real."
+            "\n\nOUTPUT:"
+            "\nReturn ONLY a JSON array of 5 strings."
         )
         try:
             response = self.client.models.generate_content(
@@ -56,9 +62,13 @@ class AIService:
         return response.text
 
     def drafter_write(self, title: str, anchors: List[str], outline: str, style: str, rhyme_scheme: str) -> str:
-        """Agent B: The Drafter - Writes the raw content."""
+        """Agent B: The Drafter - Writes the raw content with tags."""
         prompt = f"Title: {title}\nAnchors: {', '.join(anchors)}\nOutline: {outline}\nStyle: {style}\nRhyme Scheme: {rhyme_scheme}\n\nWrite the full lyrics."
-        system_instruction = "You are 'The Drafter'. Write raw, evocative lyrics based on the outline and anchors. Use 'Show, Don't Tell'."
+        system_instruction = (
+            "You are 'The Drafter'. Write raw, evocative lyrics based on the outline and anchors. "
+            "MANDATORY: Tag every section clearly using brackets, e.g., [Verse 1], [Chorus], [Bridge], [Outro]. "
+            "Use 'Show, Don't Tell'."
+        )
         
         response = self.client.models.generate_content(
             model=MODEL_PRO,
@@ -71,7 +81,11 @@ class AIService:
         """Agent C: The Editor - Removes clichés and polishes tone."""
         banned = ", ".join(BANNED_AI_WORDS)
         prompt = f"Lyrics to refine:\n{lyrics}\n\nStrictly remove these clichés: {banned}. Rewrite to be more conversational and raw."
-        system_instruction = "You are 'The Editor'. Clean up the lyrics. Make them feel authentic and human. Return ONLY the refined lyrics."
+        system_instruction = (
+            "You are 'The Editor'. Clean up the lyrics. Make them feel authentic and human. "
+            "MANDATORY: Preserve all section tags like [Verse 1], [Chorus], etc. "
+            "Return ONLY the refined lyrics."
+        )
         
         response = self.client.models.generate_content(
             model=MODEL_PRO,
@@ -83,7 +97,11 @@ class AIService:
     def rhythmist_polish(self, lyrics: str) -> str:
         """Agent D: The Rhythmist - Final meter and stress check."""
         prompt = f"Lyrics to polish:\n{lyrics}\n\nEnsure rhythmic consistency and natural flow."
-        system_instruction = "You are 'The Rhythmist'. Perform a final rhythmic polish. Ensure the flow is perfect for singing. Return ONLY the polished lyrics."
+        system_instruction = (
+            "You are 'The Rhythmist'. Perform a final rhythmic polish. Ensure the flow is perfect for singing. "
+            "MANDATORY: Preserve all section tags like [Verse 1], [Chorus], etc. "
+            "Return ONLY the polished lyrics."
+        )
         
         response = self.client.models.generate_content(
             model=MODEL_PRO,
@@ -118,16 +136,10 @@ class AIService:
         import time
         for word in final_lyrics.split(" "):
             yield word + " "
-            time.sleep(0.02)
+            time.sleep(0.01)
         
         # Total tokens tracking placeholder
-        yield f"\n\n__USAGE__:1500" # Approximation for agentic overhead
-
-    # Legacy method compatibility
-    def stream_lyrics(self, contents: List[dict], style: str = "Modern", rhyme_scheme: str = "Free Verse"):
-        # We will keep this for now but redirect to the factory if it's a fresh start
-        # Actually, let's keep the API call simple.
-        pass
+        yield f"\n\n__USAGE__:1500"
 
     def get_stress_patterns(self, text: str) -> str:
         if not self.client: return text

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+.env
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# TDD Agent
+.tdd/
+.codex/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+storage/vibeflow.db-shm
+storage/vibeflow.db-wal
+# Note: keeping vibeflow.db for now as it's a local app example db, but usually we ignore it too.

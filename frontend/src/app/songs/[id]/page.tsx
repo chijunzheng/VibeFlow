@@ -189,7 +189,15 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
         if (value) {
           const chunk = decoder.decode(value, { stream: true });
           accumulatedLyrics += chunk;
-          setLyrics(accumulatedLyrics);
+          
+          // Clean output: if we see the final lyrics delimiter, only show what's after it
+          const delimiter = "--- FINAL LYRICS ---";
+          if (accumulatedLyrics.includes(delimiter)) {
+            const parts = accumulatedLyrics.split(delimiter);
+            setLyrics(parts[parts.length - 1].trimStart());
+          } else {
+            setLyrics(accumulatedLyrics);
+          }
         }
       }
       toast("Lyrics drafted", "success");
