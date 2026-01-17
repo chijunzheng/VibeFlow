@@ -84,6 +84,35 @@ export const getStreamLyricsUrl = (
   return `${API_URL}/songs/${id}/write_lyrics/stream?${params.toString()}`;
 };
 
+export async function brainstormVibes(prompt: string): Promise<string[]> {
+  const res = await fetch(`${API_URL}/ai/brainstorm_vibes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt }),
+  });
+  if (!res.ok) throw new Error("Failed to brainstorm vibes");
+  return res.json();
+}
+
+export async function refineLyrics(
+  id: number,
+  currentLyrics: string,
+  selection: string,
+  instruction: string
+): Promise<string> {
+  const res = await fetch(`${API_URL}/songs/${id}/refine_lyrics`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      current_lyrics: currentLyrics,
+      selection,
+      instruction,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to refine lyrics");
+  return res.json();
+}
+
 export async function countSyllables(text: string): Promise<number[]> {
   const res = await fetch(`${API_URL}/utils/syllables`, {
     method: "POST",

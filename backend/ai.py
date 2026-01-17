@@ -21,18 +21,30 @@ class AIService:
             logger.warning("AIService initialized without API Key. AI features will fail.")
 
     def get_vibe_cloud(self, prompt: str) -> List[str]:
-        """Agent 0: The Sensory Scout - Expands seed into sensory anchors."""
+        """Agent 0: The Sensory Scout - Expands seed into sensory anchors using a Generate-Curate loop."""
         if not self.client: raise Exception("Gemini API Key not configured")
+
+        # Step 1: Brainstorm diverse candidates (Generate 10)
+        candidates = self.generate_vibe_candidates(prompt)
         
+        # Step 2: Curate the best ones (Select 5)
+        anchors = self.curate_vibe_anchors(prompt, candidates)
+        
+        return anchors
+
+    def generate_vibe_candidates(self, prompt: str) -> List[str]:
+        """Internal: Generates a broad list of sensory candidates."""
         system_instruction = (
-            "You are 'The Sensory Scout'. Your job is to brainstorm 5 concrete 'Vibe Anchors' for a song based on the user's input."
-            "\n\nRULES:"
-            "\n1. **Concrete Images Only:** No abstract concepts ('infinity', 'soul'). Give me the *movie prop* or the *setting* (e.g., 'A flickering neon sign', 'Dust on a dashboard', 'Cold coffee')."
-            "\n2. **Keep it Short:** Max 6 words per anchor. These are building blocks, not finished lyrics."
-            "\n3. **Universal Applicability:** Whether the user says 'Love', 'Cyberpunk', or 'Sadness', give me the *physical evidence* of that theme."
-            "\n4. **No Purple Prose:** Do not use adjectives like 'shimmering', 'tapestry', 'crystalline'. Keep it raw and real."
+            "You are a Cinematographer and Sound Designer finding the 'Vibe' for a song."
+            "\nTask: Brainstorm 10 distinct, evocative sensory details (visuals, sounds, textures) based on the user's input."
+            "\n\nGUIDELINES:"
+            "\n1. **Synthesize the Input:** If multiple keywords are provided, do not treat them in isolation. Find the *intersection* where they coexist. Create images that embody the combination of all inputs simultaneously."
+            "\n2. **Logical Correlation:** Ensure each vibe is a direct, tangible manifestation of the *combined* theme."
+            "\n3. **Conciseness:** Keep each anchor short and punchy (Max 8 words). Avoid long, flowery sentences."
+            "\n4. **Sensory Focus:** Mix visuals, sounds, and textures. Show the physical evidence of the feeling."
+            "\n5. **No Purple Prose:** Keep it raw, real, and grounded."
             "\n\nOUTPUT:"
-            "\nReturn ONLY a JSON array of 5 strings."
+            "\nReturn ONLY a JSON array of 10 strings."
         )
         try:
             response = self.client.models.generate_content(
@@ -41,13 +53,44 @@ class AIService:
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
                     response_mime_type="application/json",
-                    temperature=0.7
+                    temperature=0.8
                 )
             )
-            return json.loads(response.text)[:5] if response.text else []
+            return json.loads(response.text)[:10] if response.text else []
         except Exception as e:
-            logger.error(f"Sensory Scout error: {e}")
+            logger.error(f"Vibe Candidate Generation error: {e}")
             return []
+
+    def curate_vibe_anchors(self, original_prompt: str, candidates: List[str]) -> List[str]:
+        """Internal: Selects the most evocative anchors from the candidates."""
+        if not candidates: return []
+        
+        candidates_str = "\n".join([f"- {c}" for c in candidates])
+        prompt = f"Original Prompt: {original_prompt}\nCandidates:\n{candidates_str}"
+        
+        system_instruction = (
+            "You are the 'Vibe Curator'. Select the top 5 most evocative, atmospheric, and inspiring anchors from the list."
+            "\nCRITERIA:"
+            "\n- **Reject** clichés (e.g., 'broken heart', 'tears')."
+            "\n- **Select** images that tell a story or set a scene immediately."
+            "\n- **Ensure** they fit the original prompt's mood."
+            "\n\nOUTPUT:"
+            "\nReturn ONLY a JSON array of the 5 selected strings."
+        )
+        try:
+            response = self.client.models.generate_content(
+                model=MODEL_FLASH,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    response_mime_type="application/json",
+                    temperature=0.5
+                )
+            )
+            return json.loads(response.text)[:5] if response.text else candidates[:5]
+        except Exception as e:
+            logger.error(f"Vibe Curation error: {e}")
+            return candidates[:5]
 
     def architect_outline(self, title: str, anchors: List[str]) -> str:
         """Agent A: The Architect - Outlines the song structure."""
@@ -67,7 +110,7 @@ class AIService:
         system_instruction = (
             "You are 'The Drafter'. Write raw, evocative lyrics based on the outline and anchors. "
             "MANDATORY: Tag every section clearly using brackets, e.g., [Verse 1], [Chorus], [Bridge], [Outro]. "
-            "Use 'Show, Don't Tell'."
+            "Use 'Show, Don't Tell'. Do not force rhymes. Rhyme when it feels natural, but prioritize imagery and meaning."
         )
         
         response = self.client.models.generate_content(
@@ -110,13 +153,35 @@ class AIService:
         )
         return response.text
 
-    def lyrics_factory_stream(self, title: str, seed: str, style: str, rhyme_scheme: str) -> Generator[str, None, None]:
+    def sonic_polish(self, lyrics: str) -> str:
+        """Agent E: The Sonic Sculptor - Improves phonetics and removes forced rhymes."""
+        prompt = f"Lyrics to improve:\n{lyrics}\n\nOptimize for phonetic beauty (assonance, consonance) and naturalness."
+        system_instruction = (
+            "You are 'The Sonic Sculptor'. Your job is to make the lyrics sound beautiful when sung or spoken. "
+            "1. Enhance phonetic patterns (alliteration, assonance) without being overwhelming. "
+            "2. LOOSEN strict rhyming. If a rhyme feels forced or cheesy, break it. Prioritize flow and 'mouthfeel'. "
+            "MANDATORY: Preserve all section tags like [Verse 1], [Chorus], etc. "
+            "Return ONLY the sculpted lyrics."
+        )
+        
+        response = self.client.models.generate_content(
+            model=MODEL_PRO,
+            contents=prompt,
+            config=types.GenerateContentConfig(system_instruction=system_instruction, temperature=0.7)
+        )
+        return response.text
+
+    def lyrics_factory_stream(self, title: str, seed: str, style: str, rhyme_scheme: str, anchors: List[str] = None) -> Generator[str, None, None]:
         """Coordinated Agentic Workflow (The Lyrics Factory)."""
         if not self.client: yield "Error: No API Key"; return
 
-        yield "🔍 [Sensory Scout] Expanding vibes...\n"
-        anchors = self.get_vibe_cloud(seed)
-        yield f"✨ Anchors: {', '.join(anchors)}\n\n"
+        if not anchors:
+            yield "🔍 [Sensory Scout] Expanding vibes...\n"
+            anchors = self.get_vibe_cloud(seed)
+            yield f"✨ Anchors: {', '.join(anchors)}\n\n"
+        else:
+            yield "Using selected vibes...\n"
+            yield f"✨ Anchors: {', '.join(anchors)}\n\n"
 
         yield "🏗️ [Architect] Designing structure...\n"
         outline = self.architect_outline(title, anchors)
@@ -128,7 +193,10 @@ class AIService:
         refined = self.editor_refine(raw_draft)
         
         yield "🎵 [Rhythmist] Polishing flow...\n"
-        final_lyrics = self.rhythmist_polish(refined)
+        polished_rhythm = self.rhythmist_polish(refined)
+
+        yield "✨ [Sonic Sculptor] Enhancing phonetics...\n"
+        final_lyrics = self.sonic_polish(polished_rhythm)
         
         yield "\n--- FINAL LYRICS ---\n\n"
         

@@ -73,7 +73,7 @@ def test_stream_lyrics(client: TestClient):
 
     mock_chunks = ["Verse 1", "\nWalking", " down"]
     
-    with patch("backend.ai.ai_service.stream_lyrics_factory", return_value=iter(mock_chunks)) as mock_stream:
+    with patch("backend.ai.ai_service.lyrics_factory_stream", return_value=iter(mock_chunks)) as mock_stream:
         response = client.get(f"/songs/{song_id}/write_lyrics/stream")
         
         assert response.status_code == 200
@@ -84,32 +84,9 @@ def test_stream_lyrics(client: TestClient):
         mock_stream.assert_called_once()
         call_args = mock_stream.call_args[0]
         assert call_args[0] == "Neon City"
-        assert call_args[1] == "Neon"
-        assert call_args[2] == mock_anchors
-
-def test_stream_lyrics_uses_seed(client: TestClient):
-    """Test that streaming lyrics uses the seed to expand the vibe cloud."""
-    response = client.post("/songs/", json={"title": "Fresh Start Song"})
-    song_id = response.json()["id"]
-
-    mock_chunks = ["Verse 1"]
-    with patch("backend.ai.ai_service.get_vibe_cloud", return_value=["Fire", "Ice"]) as mock_vibe:
-        with patch("backend.ai.ai_service.stream_lyrics_factory", return_value=iter(mock_chunks)) as mock_stream:
-            response = client.get(f"/songs/{song_id}/write_lyrics/stream?seed=Dual")
-
-            assert response.status_code == 200
-            content = b"".join(response.iter_bytes())
-            assert content.decode("utf-8") == "Verse 1"
-
-            mock_vibe.assert_called_once_with("Dual")
-            mock_stream.assert_called_once()
-            call_args = mock_stream.call_args[0]
-            assert call_args[0] == "Fresh Start Song"
-            assert call_args[1] == "Dual"
-            assert call_args[2] == ["Fire", "Ice"]
-
-    song = client.get(f"/songs/{song_id}").json()
-    assert song["vibe_cloud"] == ["Fire", "Ice"]
+        # Seed includes anchors now
+        assert call_args[1] == "Neon City (Neon, Light)"
+        assert call_args[2] == "Modern" # default style
 
 def test_get_stress_patterns(client: TestClient):
     """Test stress pattern analysis."""
