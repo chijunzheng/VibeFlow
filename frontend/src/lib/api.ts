@@ -6,6 +6,7 @@ export interface Song {
   vibe_cloud?: string[];
   content?: Record<string, any>;
   thought_sig?: string;
+  total_tokens: number;
   created_at: string;
   updated_at: string;
 }

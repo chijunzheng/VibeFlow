@@ -7,6 +7,7 @@ class SongBase(SQLModel):
     vibe_cloud: Optional[List[str]] = Field(default=None, sa_type=JSON)
     content: Optional[Dict] = Field(default=None, sa_type=JSON)
     thought_sig: Optional[str] = None
+    total_tokens: int = 0
 
 class Song(SongBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -21,6 +22,7 @@ class SongUpdate(SQLModel):
     vibe_cloud: Optional[List[str]] = Field(default=None, sa_type=JSON)
     content: Optional[Dict] = Field(default=None, sa_type=JSON)
     thought_sig: Optional[str] = None
+    total_tokens: Optional[int] = None
 
 class SongRead(SongBase):
     id: int

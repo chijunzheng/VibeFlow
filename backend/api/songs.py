@@ -59,10 +59,6 @@ def generate_vibe(
     prompt: str = Body(..., embed=True), 
     session: Session = Depends(get_session)
 ):
-    """
-    Generate a Vibe Cloud for the song using Gemini Flash.
-    Updates the song's vibe_cloud field.
-    """
     song = session.get(Song, song_id)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
@@ -84,18 +80,9 @@ def write_lyrics(
     rhyme_scheme: str = Body(default="Free Verse", embed=True),
     session: Session = Depends(get_session)
 ):
-    """
-    Generate lyrics using Gemini Pro based on the song's title and vibe cloud.
-    Updates the song's content.
-    """
     song = session.get(Song, song_id)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
-    
-    if not song.vibe_cloud:
-        raise HTTPException(status_code=400, detail="Vibe Cloud is empty. Generate vibes first.")
-    
-    # Simple placeholder as we prefer streaming
     return song
 
 @router.get("/{song_id}/write_lyrics/stream")
@@ -105,9 +92,6 @@ def stream_lyrics(
     rhyme_scheme: str = "Free Verse",
     session: Session = Depends(get_session)
 ):
-    """
-    Stream lyrics generation.
-    """
     song = session.get(Song, song_id)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
@@ -115,7 +99,6 @@ def stream_lyrics(
     if not song.vibe_cloud:
         raise HTTPException(status_code=400, detail="Vibe Cloud is empty")
 
-    # Construct the current prompt
     anchors_str = ", ".join(song.vibe_cloud)
     prompt_text = (
         f"Title: {song.title}\n"
@@ -125,7 +108,6 @@ def stream_lyrics(
         "Write a verse and a chorus for this song."
     )
     
-    # Load history
     history = []
     if song.thought_sig:
         try:
@@ -133,25 +115,30 @@ def stream_lyrics(
         except:
             history = []
             
-    # Add current prompt
-    current_message = {"role": "user", "parts": [prompt_text]}
-    history.append(current_message)
+    history.append({"role": "user", "parts": [prompt_text]})
 
     def generator():
         full_lyrics = ""
-        # Pass full history to AI
+        final_tokens = 0
         for chunk in ai_service.stream_lyrics(history, style, rhyme_scheme):
+            if chunk.startswith("__USAGE__:"):
+                try:
+                    final_tokens = int(chunk.split(":")[1])
+                except:
+                    pass
+                continue # Don't yield usage chunk to client
+                
             full_lyrics += chunk
             yield chunk
         
-        # Append model response to history
         history.append({"role": "model", "parts": [full_lyrics]})
         
-        # Update DB
         song.content = song.content or {}
         song.content["lyrics"] = full_lyrics
         song.content = dict(song.content)
-        song.thought_sig = json.dumps(history) # Save updated history
+        song.thought_sig = json.dumps(history)
+        if final_tokens > 0:
+            song.total_tokens = (song.total_tokens or 0) + final_tokens
         session.add(song)
         session.commit()
 

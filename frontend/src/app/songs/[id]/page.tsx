@@ -312,7 +312,15 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                     </button>
                 </div>
             )}
-            <p className="text-slate-500 text-sm mt-1">Created {new Date(song.created_at).toLocaleDateString()}</p>
+            <p className="text-slate-500 text-sm mt-1 flex items-center gap-3">
+                <span>Created {new Date(song.created_at).toLocaleDateString()}</span>
+                {song.total_tokens > 0 && (
+                    <span className="flex items-center gap-1 text-[10px] bg-slate-800/50 px-2 py-0.5 rounded-full border border-slate-700/50">
+                        <Activity size={10} className="text-violet-400" />
+                        {song.total_tokens.toLocaleString()} tokens
+                    </span>
+                )}
+            </p>
         </div>
         <div className="flex flex-col items-end gap-2 pb-1">
             <ThinkingIndicator active={generatingVibe || writingLyrics || analyzingStress || rewriting} />

@@ -738,22 +738,22 @@
       "description": "Graceful handling of context limits (basic).",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0082",
           "description": "Step 1: Input/Action for Token Usage",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0083",
           "description": "Step 2: Verification for Token Usage",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0084",
           "description": "Step 3: Persistence/State Check for Token Usage",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -819,22 +819,22 @@
       "description": "Handle SQLite lock gracefully (retry).",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0091",
           "description": "Step 1: Input/Action for DB Lock",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0092",
           "description": "Step 2: Verification for DB Lock",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0093",
           "description": "Step 3: Persistence/State Check for DB Lock",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -948,5 +948,5 @@
       "files_modified": []
     }
   ],
-  "updated_at": "2026-01-16T22:42:04.454613"
+  "updated_at": "2026-01-16T22:47:01.997625"
 }

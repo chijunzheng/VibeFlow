@@ -1,33 +1,30 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T15:30:00Z
+Last Updated: 2026-01-16T15:45:00Z
 
-## Session: Creative Refinement & Session Control
+## Session: Shortcuts & Resilience
 
 ### Completed
-- Feature F009: Regenerate Line (Smart Rewrite)
-  - Backend: Added `rewrite_text` to AIService.
-  - Frontend: Added "Rewrite" button that works on selected text with user instructions.
-- Feature F010: Clear Session
-  - Added "Trash" icon in Vibe Cloud panel to reset the entire project workspace (Vibes + Lyrics + AI History).
-- Housekeeping
-  - Marked F012, F019, F020, F021, F029, F030, F033 as complete (already implemented in previous phases).
+- Feature F023: Keyboard Shortcuts
+  - Added global event listeners in the editor.
+  - `Cmd+Enter`: Trigger Ghostwrite.
+  - `Cmd+S`: Immediate Manual Save.
+  - `Cmd+Shift+S`: Toggle Stress Highlighting.
+- Feature F034: 404 Page
+  - Created a custom `not-found.tsx` with VibeFlow's glassmorphic design.
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Integrated text selection logic for targeted AI rewrites.
-  - Implemented workspace reset logic.
+  - Integrated keyboard listener with editor state.
+  - Built a polished 404 page.
 
 ### Context for Next Agent
 - **Priority:**
-  - F023: Keyboard Shortcuts - UX speed.
-  - F028: Token Usage - Metadata display.
-  - F031: DB Lock - Backend reliability.
-  - F034: 404 Page - Navigation polish.
+  - F028: Token Usage - Metadata tracking.
+  - F031: DB Lock - Handle concurrent access (less critical for local lite, but good to have).
 - **Notes:**
-  - 88% of core features are complete. The app is highly functional.
+  - 94% of features complete.
 
 ## File Summary
-- backend/ai.py: Added rewrite capability
-- backend/api/utils.py: Added /utils/rewrite
-- frontend/src/app/songs/[id]/page.tsx: Added Rewrite/Clear UI
+- frontend/src/app/songs/[id]/page.tsx: Added shortcut listeners
+- frontend/src/app/not-found.tsx: Custom 404

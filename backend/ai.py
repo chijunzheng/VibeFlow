@@ -33,7 +33,7 @@ class AIService:
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash-exp", # Using latest flash model
+                model="gemini-2.0-flash-exp",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
@@ -42,11 +42,10 @@ class AIService:
                 )
             )
             
-            # Parse the JSON response
             if response.text:
                 anchors = json.loads(response.text)
                 if isinstance(anchors, list):
-                    return anchors[:5] # Ensure max 5
+                    return anchors[:5]
                 
             logger.error(f"Unexpected AI response format: {response.text}")
             return []
@@ -63,10 +62,6 @@ class AIService:
         if not self.client:
             raise Exception("Gemini API Key not configured")
         
-        # We assume the last message in 'contents' is the current prompt, 
-        # or 'contents' is the full history including the current prompt.
-        # The system instruction is set in config, not in contents.
-
         system_instruction = (
             "You are 'The Ghostwriter', a top-tier lyricist. "
             "Write lyrics that strictly incorporate the provided 'Vibe Cloud' anchors to ensure concrete imagery. "
@@ -78,20 +73,24 @@ class AIService:
         )
 
         try:
-            # We used to build a single prompt string. Now we handle a chat-like structure.
-            # However, for the specific task of "Draft Lyrics", the Vibe Cloud and Style are usually contextual to the *current* request.
-            # If we want to maintain history, we just pass the full contents list.
-            
-            for chunk in self.client.models.generate_content_stream(
+            response_stream = self.client.models.generate_content_stream(
                 model="gemini-2.0-flash-thinking-exp-1219",
                 contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
                     temperature=0.8
                 )
-            ):
+            )
+
+            for chunk in response_stream:
                 if chunk.text:
                     yield chunk.text
+            
+            try:
+                usage = response_stream.usage_metadata
+                yield f"__USAGE__:{usage.total_token_count}"
+            except:
+                pass
 
         except Exception as e:
             logger.error(f"Error streaming lyrics: {str(e)}")
@@ -100,7 +99,6 @@ class AIService:
     def get_stress_patterns(self, text: str) -> str:
         """
         Marks stressed syllables in bold (markdown style) using Gemini Flash.
-        Example: "I **walked** down **emp**ty **streets**"
         """
         if not self.client:
             raise Exception("Gemini API Key not configured")
@@ -111,8 +109,6 @@ class AIService:
         system_instruction = (
             "You are a prosody expert. Analyze the provided lyrics and mark the stressed syllables by wrapping them in double asterisks (**bold**). "
             "Do not change any words or punctuation. Only add asterisks around the stressed syllables. "
-            "Example Input: 'I walked down empty streets' "
-            "Example Output: 'I **walked** down **emp**ty **streets**' "
             "Maintain the original line breaks."
         )
 
