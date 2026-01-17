@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 import pytest
@@ -73,7 +73,7 @@ def test_stream_lyrics(client: TestClient):
 
     mock_chunks = ["Verse 1", "\nWalking", " down"]
     
-    with patch("backend.ai.ai_service.stream_lyrics", return_value=iter(mock_chunks)) as mock_stream:
+    with patch("backend.ai.ai_service.stream_lyrics_factory", return_value=iter(mock_chunks)) as mock_stream:
         response = client.get(f"/songs/{song_id}/write_lyrics/stream")
         
         assert response.status_code == 200
@@ -82,46 +82,34 @@ def test_stream_lyrics(client: TestClient):
         assert content.decode("utf-8") == "Verse 1\nWalking down"
         
         mock_stream.assert_called_once()
+        call_args = mock_stream.call_args[0]
+        assert call_args[0] == "Neon City"
+        assert call_args[1] == "Neon"
+        assert call_args[2] == mock_anchors
 
-def test_stream_lyrics_with_history(client: TestClient):
-    """Test streaming lyrics with existing thought_sig history."""
-    import json
-    
-    # Create song
-    response = client.post("/songs/", json={"title": "Sequel Song"})
+def test_stream_lyrics_uses_seed(client: TestClient):
+    """Test that streaming lyrics uses the seed to expand the vibe cloud."""
+    response = client.post("/songs/", json={"title": "Fresh Start Song"})
     song_id = response.json()["id"]
-    
-    # Mock Vibe Cloud
-    mock_anchors = ["Fire", "Ice"]
-    with patch("backend.ai.ai_service.get_vibe_cloud", return_value=mock_anchors):
-        client.post(f"/songs/{song_id}/generate_vibe", json={"prompt": "Dual"})
 
-    # Set initial thought_sig directly in DB (via a helper or mock)
-    # Since we don't have direct DB access easily here without more setup, 
-    # we'll simulate it by assuming the first call happened.
-    # Actually, we can just run the stream once, then run it again.
-    
-    mock_chunks_1 = ["Verse 1"]
-    mock_chunks_2 = ["Verse 2"]
-    
-    # First pass
-    with patch("backend.ai.ai_service.stream_lyrics", return_value=iter(mock_chunks_1)):
-        client.get(f"/songs/{song_id}/write_lyrics/stream")
-        
-    # Second pass
-    with patch("backend.ai.ai_service.stream_lyrics", return_value=iter(mock_chunks_2)) as mock_stream_2:
-        client.get(f"/songs/{song_id}/write_lyrics/stream")
-        
-        # Verify call args contain history
-        call_args = mock_stream_2.call_args[0]
-        history = call_args[0]
-        # History is mutated by the endpoint after the call (appending model response),
-        # so we see the final state [User1, Model1, User2, Model2]
-        assert len(history) == 4
-        assert history[0]["role"] == "user"
-        assert history[1]["parts"] == ["Verse 1"]
-        assert history[2]["role"] == "user"
-        assert history[3]["parts"] == ["Verse 2"]
+    mock_chunks = ["Verse 1"]
+    with patch("backend.ai.ai_service.get_vibe_cloud", return_value=["Fire", "Ice"]) as mock_vibe:
+        with patch("backend.ai.ai_service.stream_lyrics_factory", return_value=iter(mock_chunks)) as mock_stream:
+            response = client.get(f"/songs/{song_id}/write_lyrics/stream?seed=Dual")
+
+            assert response.status_code == 200
+            content = b"".join(response.iter_bytes())
+            assert content.decode("utf-8") == "Verse 1"
+
+            mock_vibe.assert_called_once_with("Dual")
+            mock_stream.assert_called_once()
+            call_args = mock_stream.call_args[0]
+            assert call_args[0] == "Fresh Start Song"
+            assert call_args[1] == "Dual"
+            assert call_args[2] == ["Fire", "Ice"]
+
+    song = client.get(f"/songs/{song_id}").json()
+    assert song["vibe_cloud"] == ["Fire", "Ice"]
 
 def test_get_stress_patterns(client: TestClient):
     """Test stress pattern analysis."""
@@ -136,4 +124,3 @@ def test_get_stress_patterns(client: TestClient):
         assert response.status_code == 200
         assert response.json() == mock_response
         mock_stress.assert_called_once_with("I walked down empty streets")
-

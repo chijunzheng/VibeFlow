@@ -70,8 +70,19 @@ export async function writeLyrics(id: number, style: string = "Modern"): Promise
   return res.json();
 }
 
-export const getStreamLyricsUrl = (id: number, style: string = "Modern", rhymeScheme: string = "Free Verse") => 
-  `${API_URL}/songs/${id}/write_lyrics/stream?style=${encodeURIComponent(style)}&rhyme_scheme=${encodeURIComponent(rhymeScheme)}`;
+export const getStreamLyricsUrl = (
+  id: number,
+  style: string = "Modern",
+  rhymeScheme: string = "Free Verse",
+  seed?: string
+) => {
+  const params = new URLSearchParams({
+    style,
+    rhyme_scheme: rhymeScheme,
+  });
+  if (seed) params.set("seed", seed);
+  return `${API_URL}/songs/${id}/write_lyrics/stream?${params.toString()}`;
+};
 
 export async function countSyllables(text: string): Promise<number[]> {
   const res = await fetch(`${API_URL}/utils/syllables`, {

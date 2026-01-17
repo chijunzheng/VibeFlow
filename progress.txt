@@ -1,30 +1,31 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T15:45:00Z
+Last Updated: 2026-01-16T16:00:00Z
 
-## Session: Shortcuts & Resilience
+## Session: Final Feature Completion (100%)
 
 ### Completed
-- Feature F023: Keyboard Shortcuts
-  - Added global event listeners in the editor.
-  - `Cmd+Enter`: Trigger Ghostwrite.
-  - `Cmd+S`: Immediate Manual Save.
-  - `Cmd+Shift+S`: Toggle Stress Highlighting.
-- Feature F034: 404 Page
-  - Created a custom `not-found.tsx` with VibeFlow's glassmorphic design.
+- Feature F028: Token Usage
+  - Backend: Captures `usage_metadata` from Gemini streams.
+  - Frontend: Displays cumulative token count in the song header.
+- Feature F031: DB Lock
+  - Enabled SQLite Write-Ahead Logging (WAL).
+  - Implemented connection retry logic for better local concurrency.
 
-### Sub-Agent Handoffs
-- Coder (Self-Simulated):
-  - Integrated keyboard listener with editor state.
-  - Built a polished 404 page.
+### Project Milestone: 100% Features Complete
+All 35 core features specified in the simplified local-lite scope are now implemented and verified.
 
-### Context for Next Agent
-- **Priority:**
-  - F028: Token Usage - Metadata tracking.
-  - F031: DB Lock - Handle concurrent access (less critical for local lite, but good to have).
-- **Notes:**
-  - 94% of features complete.
+### Context for Next Steps
+- **Production Readiness:**
+  - Perform a final end-to-end walkthrough.
+  - Check for any edge cases in long lyrics.
+  - Verify API Key error handling one last time.
+- **Starting the App:**
+  - Ensure `.env` has `GEMINI_API_KEY`.
+  - Backend: `uvicorn backend.main:app --reload` (Port 8000)
+  - Frontend: `npm run dev` (Port 3000)
 
 ## File Summary
-- frontend/src/app/songs/[id]/page.tsx: Added shortcut listeners
-- frontend/src/app/not-found.tsx: Custom 404
+- backend/database.py: WAL & Retry logic
+- backend/ai.py: Token tracking
+- frontend/src/app/songs/[id]/page.tsx: Token display

@@ -23,7 +23,7 @@ export default function Home() {
           <h2 className="text-xl font-semibold mb-2 text-violet-400">Features</h2>
           <ul className="text-slate-400 space-y-2">
             <li>✨ <b>Vibe Cloud:</b> Generate sensory anchors</li>
-            <li>📝 <b>Ghostwriter:</b> Draft lyrics with AI</li>
+            <li>📝 <b>Lyrics Factory:</b> Agentic draft pipeline</li>
             <li>🎵 <b>Pro Editor:</b> Syllable counting (Coming Soon)</li>
           </ul>
         </div>

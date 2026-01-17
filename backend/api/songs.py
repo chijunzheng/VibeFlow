@@ -73,18 +73,6 @@ def generate_vibe(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI Generation failed: {str(e)}")
 
-@router.post("/{song_id}/write_lyrics", response_model=SongRead)
-def write_lyrics(
-    song_id: int,
-    style: str = Body(default="Modern", embed=True),
-    rhyme_scheme: str = Body(default="Free Verse", embed=True),
-    session: Session = Depends(get_session)
-):
-    song = session.get(Song, song_id)
-    if not song:
-        raise HTTPException(status_code=404, detail="Song not found")
-    return song
-
 @router.get("/{song_id}/write_lyrics/stream")
 def stream_lyrics(
     song_id: int,
@@ -92,53 +80,45 @@ def stream_lyrics(
     rhyme_scheme: str = "Free Verse",
     session: Session = Depends(get_session)
 ):
+    """
+    The Lyrics Factory: Coordinated Agentic Workflow.
+    """
     song = session.get(Song, song_id)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     
-    if not song.vibe_cloud:
-        raise HTTPException(status_code=400, detail="Vibe Cloud is empty")
-
-    anchors_str = ", ".join(song.vibe_cloud)
-    prompt_text = (
-        f"Title: {song.title}\n"
-        f"Vibe Cloud Anchors: {anchors_str}\n"
-        f"Style: {style}\n"
-        f"Rhyme Scheme: {rhyme_scheme}\n\n"
-        "Write a verse and a chorus for this song."
-    )
-    
-    history = []
-    if song.thought_sig:
-        try:
-            history = json.loads(song.thought_sig)
-        except:
-            history = []
-            
-    history.append({"role": "user", "parts": [prompt_text]})
+    # Use song title or vibe prompt as seed
+    seed = song.title
+    if song.vibe_cloud:
+        seed += f" ({', '.join(song.vibe_cloud)})"
 
     def generator():
-        full_lyrics = ""
+        full_output = ""
         final_tokens = 0
-        for chunk in ai_service.stream_lyrics(history, style, rhyme_scheme):
+        
+        # Trigger the Lyrics Factory
+        for chunk in ai_service.lyrics_factory_stream(song.title, seed, style, rhyme_scheme):
             if chunk.startswith("__USAGE__:"):
                 try:
                     final_tokens = int(chunk.split(":")[1])
-                except:
-                    pass
-                continue # Don't yield usage chunk to client
+                except: pass
+                continue
                 
-            full_lyrics += chunk
+            full_output += chunk
             yield chunk
         
-        history.append({"role": "model", "parts": [full_lyrics]})
+        # Extract actual lyrics from the factory output (anything after '--- FINAL LYRICS ---')
+        final_lyrics = full_output
+        if "--- FINAL LYRICS ---" in full_output:
+            final_lyrics = full_output.split("--- FINAL LYRICS ---")[-1].strip()
         
+        # Update DB
         song.content = song.content or {}
-        song.content["lyrics"] = full_lyrics
+        song.content["lyrics"] = final_lyrics
         song.content = dict(song.content)
-        song.thought_sig = json.dumps(history)
         if final_tokens > 0:
             song.total_tokens = (song.total_tokens or 0) + final_tokens
+        
         session.add(song)
         session.commit()
 

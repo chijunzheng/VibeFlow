@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     Application configuration settings.
     Loads from environment variables and/or .env file.
     """
-    GEMINI_API_KEY: str = ""
+    GEMINI_API_KEY: str = "AIzaSyAafcl-pw05yWERQPsxzJHrO-O7IBU7iS0"
     DATABASE_URL: str = "sqlite:///storage/vibeflow.db"
 
     model_config = SettingsConfigDict(

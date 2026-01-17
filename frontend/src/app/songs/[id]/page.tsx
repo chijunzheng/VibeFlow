@@ -164,10 +164,20 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     setWritingLyrics(true);
     setLyrics("");
     setShowStress(false);
+    const seedText = vibePrompt.trim();
     
     try {
-      const url = getStreamLyricsUrl(song.id, "Modern", rhymeScheme);
+      const url = getStreamLyricsUrl(
+        song.id,
+        "Modern",
+        rhymeScheme,
+        seedText ? seedText : undefined
+      );
       const response = await fetch(url);
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || `Request failed (${response.status})`);
+      }
       if (!response.body) throw new Error("No response body");
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -183,7 +193,10 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
         }
       }
       toast("Lyrics drafted", "success");
-      loadSong(song.id);
+      // Explicitly save the final result since auto-save effect might miss it due to writingLyrics lock
+      await handleAutoSave(accumulatedLyrics); 
+      const refreshed = await fetchSong(song.id);
+      setSong(refreshed);
     } catch (err) {
       console.error(err);
       toast("Failed to draft lyrics", "error");
@@ -267,6 +280,26 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     } finally {
         setRewriting(false);
     }
+  };
+
+  const handleInsertVibe = (vibe: string) => {
+    if (!textareaRef.current) return;
+    
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    
+    const newText = lyrics.substring(0, start) + vibe + lyrics.substring(end);
+    setLyrics(newText);
+    
+    // Defer focus/selection update slightly to let React render
+    setTimeout(() => {
+        if (textareaRef.current) {
+            textareaRef.current.focus();
+            const newCursorPos = start + vibe.length;
+            textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        }
+    }, 0);
   };
   
   const renderStressContent = (text: string) => {
@@ -355,7 +388,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
           <div className="space-y-2">
             <input
               type="text"
-              placeholder="Enter a vibe (e.g., Rain)"
+              placeholder="Seed phrase (e.g., Protective love)"
               className="w-full bg-slate-950/50 border border-slate-700/50 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-colors shadow-inner"
               value={vibePrompt}
               onChange={(e) => setVibePrompt(e.target.value)}
@@ -366,14 +399,19 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
               disabled={generatingVibe || !vibePrompt}
               className="w-full bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 py-2 rounded-lg text-sm transition-all disabled:opacity-50 border border-violet-500/20 hover:border-violet-500/40"
             >
-              {generatingVibe ? "Scouting..." : "Generate Vibe"}
+              {generatingVibe ? "Scouting..." : "Expand Vibe"}
             </button>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
             {song.vibe_cloud?.map((anchor, i) => (
-              <span key={i} className="px-3 py-1 bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-full text-xs text-slate-200 shadow-sm">
+              <button 
+                key={i} 
+                onClick={() => handleInsertVibe(anchor)}
+                className="px-3 py-1 bg-slate-800/40 hover:bg-violet-600/20 hover:border-violet-500/50 hover:text-violet-200 backdrop-blur-sm border border-slate-700/50 rounded-full text-xs text-slate-300 shadow-sm transition-all cursor-pointer text-left"
+                title="Click to insert into lyrics"
+              >
                 {anchor}
-              </span>
+              </button>
             ))}
             {!song.vibe_cloud?.length && (
               <p className="text-slate-600 text-xs italic">No vibes generated yet.</p>
@@ -432,11 +470,11 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                 </button>
                 <button
                   onClick={handleWriteLyrics}
-                  disabled={writingLyrics || !song.vibe_cloud?.length}
+                  disabled={writingLyrics}
                   className="bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 px-3 py-1.5 rounded-lg text-xs transition-all disabled:opacity-50 flex items-center gap-2 border border-slate-700/30"
                 >
                   {writingLyrics ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                  Ghostwrite
+                  Lyrics Factory
                 </button>
             </div>
           </div>
