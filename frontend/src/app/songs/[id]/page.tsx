@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, analyzeStress, Song } from "@/lib/api";
+import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, analyzeStress, updateSong, Song } from "@/lib/api";
 import { Loader2, Sparkles, PenTool, Activity } from "lucide-react";
 
 export default function SongEditor({ params }: { params: Promise<{ id: string }> }) {
@@ -28,7 +28,12 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   const [stressContent, setStressContent] = useState("");
   const [analyzingStress, setAnalyzingStress] = useState(false);
   
+  // Auto-save State
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (songId) loadSong(songId);
@@ -40,10 +45,33 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
       debounceTimer.current = setTimeout(() => {
         updateSyllableCounts(lyrics);
       }, 500);
+      
+      // Auto-save logic
+      if (song && !loading && !writingLyrics) {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        setSaving(true);
+        saveTimer.current = setTimeout(() => {
+            handleAutoSave(lyrics);
+        }, 2000);
+      }
     } else {
       setSyllableCounts([]);
     }
   }, [lyrics]);
+  
+  const handleAutoSave = async (text: string) => {
+    if (!song) return;
+    try {
+        await updateSong(song.id, { 
+            content: { ...song.content, lyrics: text } 
+        });
+        setLastSaved(new Date());
+    } catch (err) {
+        console.error("Auto-save failed", err);
+    } finally {
+        setSaving(false);
+    }
+  };
 
   const loadSong = async (id: number) => {
     try {
@@ -154,9 +182,20 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="p-8 max-w-5xl mx-auto h-full flex flex-col">
-      <header className="mb-6 border-b border-slate-800 pb-4">
-        <h1 className="text-3xl font-bold text-white">{song.title}</h1>
-        <p className="text-slate-500 text-sm">Created {new Date(song.created_at).toLocaleDateString()}</p>
+      <header className="mb-6 border-b border-slate-800 pb-4 flex justify-between items-end">
+        <div>
+            <h1 className="text-3xl font-bold text-white">{song.title}</h1>
+            <p className="text-slate-500 text-sm">Created {new Date(song.created_at).toLocaleDateString()}</p>
+        </div>
+        <div className="text-xs text-slate-500 flex items-center gap-2">
+            {saving ? (
+                <span className="flex items-center gap-1 text-violet-400">
+                    <Loader2 size={10} className="animate-spin" /> Saving...
+                </span>
+            ) : lastSaved ? (
+                <span className="text-slate-400">Saved {lastSaved.toLocaleTimeString()}</span>
+            ) : null}
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">

@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from typing import List
 from backend.database import get_session
-from backend.models import Song, SongCreate, SongRead
+from backend.models import Song, SongCreate, SongRead, SongUpdate
 from backend.ai import ai_service
 
 router = APIRouter(prefix="/songs", tags=["songs"])
@@ -27,6 +27,21 @@ def read_song(song_id: int, session: Session = Depends(get_session)):
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     return song
+
+@router.put("/{song_id}", response_model=SongRead)
+def update_song(song_id: int, song_update: SongUpdate, session: Session = Depends(get_session)):
+    db_song = session.get(Song, song_id)
+    if not db_song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    song_data = song_update.model_dump(exclude_unset=True)
+    for key, value in song_data.items():
+        setattr(db_song, key, value)
+    
+    session.add(db_song)
+    session.commit()
+    session.refresh(db_song)
+    return db_song
 
 @router.post("/{song_id}/generate_vibe", response_model=SongRead)
 def generate_vibe(
@@ -69,10 +84,7 @@ def write_lyrics(
     if not song.vibe_cloud:
         raise HTTPException(status_code=400, detail="Vibe Cloud is empty. Generate vibes first.")
     
-    # We'll use the non-streamed version internally for this endpoint if needed, 
-    # but the streaming one is preferred for UI. 
-    # Let's keep this as a simple wrapper or just implement the streaming one.
-    # To keep it simple, I'll implement the streaming endpoint separately.
+    # Simple placeholder as we prefer streaming
     return song
 
 @router.get("/{song_id}/write_lyrics/stream")

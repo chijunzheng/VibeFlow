@@ -16,6 +16,12 @@ class Song(SongBase, table=True):
 class SongCreate(SongBase):
     pass
 
+class SongUpdate(SQLModel):
+    title: Optional[str] = None
+    vibe_cloud: Optional[List[str]] = Field(default=None, sa_type=JSON)
+    content: Optional[Dict] = Field(default=None, sa_type=JSON)
+    thought_sig: Optional[str] = None
+
 class SongRead(SongBase):
     id: int
     created_at: datetime

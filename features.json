@@ -279,22 +279,22 @@
       "description": "Changes to lyrics are auto-saved to SQLite.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0031",
           "description": "Step 1: Input/Action for Auto-Save",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0032",
           "description": "Step 2: Verification for Auto-Save",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0033",
           "description": "Step 3: Persistence/State Check for Auto-Save",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -948,5 +948,5 @@
       "files_modified": []
     }
   ],
-  "updated_at": "2026-01-16T22:20:35.899456"
+  "updated_at": "2026-01-16T22:22:40.649864"
 }

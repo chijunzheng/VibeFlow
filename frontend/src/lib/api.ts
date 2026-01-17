@@ -32,6 +32,16 @@ export async function createSong(title: string): Promise<Song> {
   return res.json();
 }
 
+export async function updateSong(id: number, data: Partial<Song>): Promise<Song> {
+  const res = await fetch(`${API_URL}/songs/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update song");
+  return res.json();
+}
+
 export async function generateVibe(id: number, prompt: string): Promise<Song> {
   const res = await fetch(`${API_URL}/songs/${id}/generate_vibe`, {
     method: "POST",

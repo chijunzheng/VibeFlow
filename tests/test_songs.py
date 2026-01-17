@@ -50,3 +50,27 @@ def test_read_songs(client: TestClient):
     assert len(data) == 2
     assert data[0]["title"] == "Song 1"
     assert data[1]["title"] == "Song 2"
+
+def test_update_song(client: TestClient):
+    """Test updating a song."""
+    # Create
+    response = client.post("/songs/", json={"title": "Original Title"})
+    song_id = response.json()["id"]
+    
+    # Update
+    update_data = {
+        "title": "New Title",
+        "content": {"lyrics": "Updated lyrics"}
+    }
+    response = client.put(f"/songs/{song_id}", json=update_data)
+    data = response.json()
+    
+    assert response.status_code == 200
+    assert data["title"] == "New Title"
+    assert data["content"]["lyrics"] == "Updated lyrics"
+    
+    # Verify persistence
+    response = client.get(f"/songs/{song_id}")
+    data = response.json()
+    assert data["title"] == "New Title"
+    assert data["content"]["lyrics"] == "Updated lyrics"
