@@ -54,4 +54,39 @@ class AIService:
             logger.error(f"Error generating vibe cloud: {str(e)}")
             raise e
 
+    def write_lyrics(self, title: str, vibe_cloud: List[str], style: str = "Modern") -> str:
+        """
+        Writes lyrics using Gemini Pro based on the vibe cloud.
+        """
+        if not self.client:
+            raise Exception("Gemini API Key not configured")
+        
+        anchors_str = ", ".join(vibe_cloud)
+        prompt = f"Title: {title}\nVibe Cloud Anchors: {anchors_str}\nStyle: {style}\n\nWrite a verse and a chorus for this song."
+
+        system_instruction = (
+            "You are 'The Ghostwriter', a top-tier lyricist. "
+            "Write lyrics that strictly incorporate the provided 'Vibe Cloud' anchors to ensure concrete imagery. "
+            "Avoid 'AI-isms' (shimmering, tapestry, embrace, whisper). "
+            "Use a conversational, raw, and modern tone. "
+            "Structure: [Verse] then [Chorus]. "
+            "Return ONLY the lyrics."
+        )
+
+        try:
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash-thinking-exp-1219", # Using a thinking model for high reasoning
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.8
+                )
+            )
+            
+            return response.text if response.text else ""
+
+        except Exception as e:
+            logger.error(f"Error writing lyrics: {str(e)}")
+            raise e
+
 ai_service = AIService()
