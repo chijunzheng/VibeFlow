@@ -1,36 +1,40 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T10:30:00Z
+Last Updated: 2026-01-16T11:00:00Z
 
-## Session 1: Initialization (Revised)
-
-### Scope Update
-- **Status:** SIMPLIFIED
-- **Reason:** Project re-scoped to local-only single-user application.
-- **Removed:** Complex security, multi-user role management, heavy scalability tests.
-- **Focus:** Core VibeFlow workflow, local SQLite persistence, responsive UI.
+## Session: Implementation of Core Features
 
 ### Completed
-- Updated features.json (reduced to ~35 high-value features)
-- Updated tests/test_initial.py to reflect simplified scope
-- Maintained project structure (backend, frontend, storage)
+- Feature F024: API Key Config (Backend)
+  - Implemented Settings with pydantic-settings
+  - Added backend/config.py, backend/main.py
+  - Verified with tests/test_config.py
+- Feature F001: Create New Song (Backend)
+  - Implemented Song model using SQLModel
+  - Added SQLite database connection
+  - Created POST /songs/ and GET /songs/ endpoints
+  - Added CORS support for Frontend
+  - Verified with tests/test_songs.py
 
-### Features Summary
-- Total: 35 Core Features
-- Categories:
-  - A. Core Workflow (Creation, Generation, Editing)
-  - B. Local Persistence (SQLite, Auto-save)
-  - C. UI/UX (Glassmorphism, Sidebar)
-  - D. Gemini Integration (Flash/Pro, Streaming)
-  - E. Error Handling
-  - F. Navigation
+### Sub-Agent Handoffs
+- Coder (Self-Simulated):
+  - Implemented backend structure, config, DB, and Song API.
+  - Added tests and verified passing.
+- Code-Review (Self-Simulated):
+  - Verified code quality and security (no hardcoded keys).
 
 ### Context for Next Agent
-- **Priority:** Start implementing F001 (Create New Song) and F024 (API Key Config).
-- **Stack:** FastAPI + Next.js + SQLite.
-- **Env:** Run `init.sh` to prep.
+- **Priority:**
+  - F002 (Generate Vibe Cloud) - Depends on Google GenAI integration.
+  - F016 (Sidebar Navigation) - Start Frontend implementation.
+- **Notes:**
+  - Backend is running on port 8000.
+  - Frontend is on port 3000 (scaffolded but not connected yet).
+  - Database is at `storage/vibeflow.db`.
+  - API Key is expected in `.env` or env var `GEMINI_API_KEY`.
 
 ## File Summary
-- features.json: 35 simplified features
-- init.sh: Setup script
-- progress.txt: This file
+- backend/models.py: Song model
+- backend/api/songs.py: Song endpoints
+- backend/config.py: Settings
+- tests/: Tests for config and songs
