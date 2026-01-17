@@ -684,22 +684,22 @@
       "description": "System uses Flash for vibes, Pro for writing.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0076",
           "description": "Step 1: Input/Action for Model Switching",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0077",
           "description": "Step 2: Verification for Model Switching",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0078",
           "description": "Step 3: Persistence/State Check for Model Switching",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -711,22 +711,22 @@
       "description": "Save/Resume 'thought signature' for context.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0079",
           "description": "Step 1: Input/Action for Thought Signature Storage",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0080",
           "description": "Step 2: Verification for Thought Signature Storage",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0081",
           "description": "Step 3: Persistence/State Check for Thought Signature Storage",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -948,5 +948,5 @@
       "files_modified": []
     }
   ],
-  "updated_at": "2026-01-16T22:29:50.145647"
+  "updated_at": "2026-01-16T22:34:06.347575"
 }

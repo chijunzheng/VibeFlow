@@ -1,31 +1,33 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T14:00:00Z
+Last Updated: 2026-01-16T14:30:00Z
 
-## Session: UX Polish & Export
+## Session: Feedback & Visual Polish
 
 ### Completed
-- Feature F008: Manual Edit
-  - Polished the manual editing experience.
-  - Ensured auto-save and syllable counting handle manual input gracefully.
-- Feature F015: Export Lyrics
-  - Added "Copy" button with visual "Copied" feedback.
-- Feature F017: Glassmorphic Panels
-  - Implemented `backdrop-blur-md` on main panels.
-  - Refined colors and borders for a modern 2026 aesthetic.
-  - Enhanced shadow and depth effects.
+- Feature F018: Thinking Indicator
+  - Created a custom pulsing and pinging indicator for AI states.
+  - Placed it prominently in the header during generation.
+- Feature F022: Toast Notifications
+  - Implemented a lightweight `ToastContext`.
+  - Added success/error feedback for all major user actions (Rename, Vibe, Lyrics, Copy).
+- UI Polish
+  - Enhanced glassmorphic effects with `shadow-xl`, `backdrop-blur`, and subtle borders.
+  - Improved input fields with `shadow-inner` and focus rings.
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Refined the SongEditor UI with better styling.
-  - Implemented clipboard API integration.
+  - Built the notification infrastructure and thinking state visuals.
+  - Integrated everything into the main Editor flow.
 
 ### Context for Next Agent
 - **Priority:**
-  - F018: Thinking Indicator - Add the pulse animation for AI calls.
-  - F022: Toast Notifications - Global notification system.
+  - F026: Model Switching - Allow user to toggle between Flash and Pro (Thinking) explicitly? The spec says Flash for vibes, Pro for writing. Maybe add a toggle for "Creative Intensity".
+  - F027: Thought Signature Storage - Persistence of AI context.
 - **Notes:**
-  - The UI is now visually aligned with the Glassmorphism requirement.
+  - Over 50% of features are now complete.
 
 ## File Summary
-- frontend/src/app/songs/[id]/page.tsx: Polished Editor
+- frontend/src/context/ToastContext.tsx: Global feedback
+- frontend/src/components/ThinkingIndicator.tsx: AI pulse
+- frontend/src/app/songs/[id]/page.tsx: Fully interactive editor

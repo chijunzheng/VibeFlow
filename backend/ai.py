@@ -55,38 +55,36 @@ class AIService:
             logger.error(f"Error generating vibe cloud: {str(e)}")
             raise e
 
-    def stream_lyrics(self, title: str, vibe_cloud: List[str], style: str = "Modern", rhyme_scheme: str = "Free Verse"):
+    def stream_lyrics(self, contents: List[dict], style: str = "Modern", rhyme_scheme: str = "Free Verse"):
         """
         Yields lyrics chunks from Gemini Pro.
+        Accepts a list of message dicts: [{'role': 'user', 'parts': ['text']}]
         """
         if not self.client:
             raise Exception("Gemini API Key not configured")
         
-        anchors_str = ", ".join(vibe_cloud)
-        banned_str = ", ".join(BANNED_AI_WORDS)
-        
-        prompt = (
-            f"Title: {title}\n"
-            f"Vibe Cloud Anchors: {anchors_str}\n"
-            f"Style: {style}\n"
-            f"Rhyme Scheme: {rhyme_scheme}\n\n"
-            "Write a verse and a chorus for this song."
-        )
+        # We assume the last message in 'contents' is the current prompt, 
+        # or 'contents' is the full history including the current prompt.
+        # The system instruction is set in config, not in contents.
 
         system_instruction = (
             "You are 'The Ghostwriter', a top-tier lyricist. "
             "Write lyrics that strictly incorporate the provided 'Vibe Cloud' anchors to ensure concrete imagery. "
             "Follow the requested Rhyme Scheme if specified (e.g., AABB, ABAB). "
-            f"CRITICAL: Avoid these AI-isms and clichés: {banned_str}. "
+            f"CRITICAL: Avoid these AI-isms and clichés: {', '.join(BANNED_AI_WORDS)}. "
             "Use a conversational, raw, and modern tone. Favor concrete nouns over abstract adjectives. "
             "Structure: [Verse] then [Chorus]. "
             "Return ONLY the lyrics."
         )
 
         try:
+            # We used to build a single prompt string. Now we handle a chat-like structure.
+            # However, for the specific task of "Draft Lyrics", the Vibe Cloud and Style are usually contextual to the *current* request.
+            # If we want to maintain history, we just pass the full contents list.
+            
             for chunk in self.client.models.generate_content_stream(
                 model="gemini-2.0-flash-thinking-exp-1219",
-                contents=prompt,
+                contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
                     temperature=0.8

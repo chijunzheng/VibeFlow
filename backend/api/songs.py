@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from typing import List
+import json
 from backend.database import get_session
 from backend.models import Song, SongCreate, SongRead, SongUpdate
 from backend.ai import ai_service
@@ -114,16 +115,43 @@ def stream_lyrics(
     if not song.vibe_cloud:
         raise HTTPException(status_code=400, detail="Vibe Cloud is empty")
 
+    # Construct the current prompt
+    anchors_str = ", ".join(song.vibe_cloud)
+    prompt_text = (
+        f"Title: {song.title}\n"
+        f"Vibe Cloud Anchors: {anchors_str}\n"
+        f"Style: {style}\n"
+        f"Rhyme Scheme: {rhyme_scheme}\n\n"
+        "Write a verse and a chorus for this song."
+    )
+    
+    # Load history
+    history = []
+    if song.thought_sig:
+        try:
+            history = json.loads(song.thought_sig)
+        except:
+            history = []
+            
+    # Add current prompt
+    current_message = {"role": "user", "parts": [prompt_text]}
+    history.append(current_message)
+
     def generator():
         full_lyrics = ""
-        for chunk in ai_service.stream_lyrics(song.title, song.vibe_cloud, style, rhyme_scheme):
+        # Pass full history to AI
+        for chunk in ai_service.stream_lyrics(history, style, rhyme_scheme):
             full_lyrics += chunk
             yield chunk
         
-        # Update DB after stream finishes
+        # Append model response to history
+        history.append({"role": "model", "parts": [full_lyrics]})
+        
+        # Update DB
         song.content = song.content or {}
         song.content["lyrics"] = full_lyrics
         song.content = dict(song.content)
+        song.thought_sig = json.dumps(history) # Save updated history
         session.add(song)
         session.commit()
 
