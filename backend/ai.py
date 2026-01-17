@@ -54,9 +54,9 @@ class AIService:
             logger.error(f"Error generating vibe cloud: {str(e)}")
             raise e
 
-    def write_lyrics(self, title: str, vibe_cloud: List[str], style: str = "Modern") -> str:
+    def stream_lyrics(self, title: str, vibe_cloud: List[str], style: str = "Modern"):
         """
-        Writes lyrics using Gemini Pro based on the vibe cloud.
+        Yields lyrics chunks from Gemini Pro.
         """
         if not self.client:
             raise Exception("Gemini API Key not configured")
@@ -74,19 +74,19 @@ class AIService:
         )
 
         try:
-            response = self.client.models.generate_content(
-                model="gemini-2.0-flash-thinking-exp-1219", # Using a thinking model for high reasoning
+            for chunk in self.client.models.generate_content_stream(
+                model="gemini-2.0-flash-thinking-exp-1219",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
                     temperature=0.8
                 )
-            )
-            
-            return response.text if response.text else ""
+            ):
+                if chunk.text:
+                    yield chunk.text
 
         except Exception as e:
-            logger.error(f"Error writing lyrics: {str(e)}")
+            logger.error(f"Error streaming lyrics: {str(e)}")
             raise e
 
 ai_service = AIService()

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { fetchSong, generateVibe, writeLyrics, countSyllables, Song } from "@/lib/api";
+import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, Song } from "@/lib/api";
 import { Loader2, Sparkles, PenTool } from "lucide-react";
 
 export default function SongEditor({ params }: { params: Promise<{ id: string }> }) {
@@ -79,14 +79,35 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   const handleWriteLyrics = async () => {
     if (!song) return;
     setWritingLyrics(true);
+    setLyrics(""); // Clear current lyrics for new stream
+    
     try {
-      const updatedSong = await writeLyrics(song.id);
-      setSong(updatedSong);
-      if (updatedSong.content?.lyrics) {
-        setLyrics(updatedSong.content.lyrics);
+      const url = getStreamLyricsUrl(song.id);
+      const response = await fetch(url);
+      
+      if (!response.body) throw new Error("No response body");
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let finished = false;
+      let accumulatedLyrics = "";
+
+      while (!finished) {
+        const { value, done } = await reader.read();
+        finished = done;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          accumulatedLyrics += chunk;
+          setLyrics(accumulatedLyrics);
+        }
       }
+      
+      // Refresh song data to get the final saved state
+      loadSong(song.id);
+      
     } catch (err) {
-      alert("Failed to write lyrics");
+      console.error(err);
+      alert("Failed to stream lyrics");
     } finally {
       setWritingLyrics(false);
     }
@@ -157,8 +178,8 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
             </button>
           </div>
 
-          <div className="flex-1 relative flex">
-             <div className="w-10 bg-slate-950/30 border-r border-slate-800 flex flex-col pt-4 items-center text-[10px] text-slate-500 font-mono space-y-[1.15rem] pointer-events-none select-none">
+          <div className="flex-1 relative flex overflow-hidden">
+             <div className="w-10 bg-slate-950/30 border-r border-slate-800 flex flex-col pt-4 items-center text-[10px] text-slate-500 font-mono space-y-[1.15rem] pointer-events-none select-none overflow-hidden">
                 {syllableCounts.map((count, i) => (
                   <div key={i} className="h-4 flex items-center justify-center">
                     {count > 0 ? count : ""}

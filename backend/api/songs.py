@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from typing import List
 from backend.database import get_session
@@ -68,23 +69,39 @@ def write_lyrics(
     if not song.vibe_cloud:
         raise HTTPException(status_code=400, detail="Vibe Cloud is empty. Generate vibes first.")
     
-    try:
-        lyrics = ai_service.write_lyrics(song.title, song.vibe_cloud, style)
+    # We'll use the non-streamed version internally for this endpoint if needed, 
+    # but the streaming one is preferred for UI. 
+    # Let's keep this as a simple wrapper or just implement the streaming one.
+    # To keep it simple, I'll implement the streaming endpoint separately.
+    return song
+
+@router.get("/{song_id}/write_lyrics/stream")
+def stream_lyrics(
+    song_id: int,
+    style: str = "Modern",
+    session: Session = Depends(get_session)
+):
+    """
+    Stream lyrics generation.
+    """
+    song = session.get(Song, song_id)
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    if not song.vibe_cloud:
+        raise HTTPException(status_code=400, detail="Vibe Cloud is empty")
+
+    def generator():
+        full_lyrics = ""
+        for chunk in ai_service.stream_lyrics(song.title, song.vibe_cloud, style):
+            full_lyrics += chunk
+            yield chunk
         
-        # Initialize content dict if None
-        if not song.content:
-            song.content = {}
-        
-        # Update content with new lyrics (appending or replacing - let's replace for now or add to a 'drafts' list)
-        # For simplicity, we just store it in a 'lyrics' key
-        song.content["lyrics"] = lyrics
-        # We need to re-assign to trigger SQLModel/SQLAlchemy change detection for JSON fields if it was mutable
-        # But here we are assigning a new dict key or re-assigning the whole dict
-        song.content = dict(song.content) 
-        
+        # Update DB after stream finishes
+        song.content = song.content or {}
+        song.content["lyrics"] = full_lyrics
+        song.content = dict(song.content)
         session.add(song)
         session.commit()
-        session.refresh(song)
-        return song
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI Writing failed: {str(e)}")
+
+    return StreamingResponse(generator(), media_type="text/plain")
