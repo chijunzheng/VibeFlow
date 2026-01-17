@@ -62,8 +62,8 @@ export async function writeLyrics(id: number, style: string = "Modern"): Promise
   return res.json();
 }
 
-export const getStreamLyricsUrl = (id: number, style: string = "Modern") => 
-  `${API_URL}/songs/${id}/write_lyrics/stream?style=${encodeURIComponent(style)}`;
+export const getStreamLyricsUrl = (id: number, style: string = "Modern", rhymeScheme: string = "Free Verse") => 
+  `${API_URL}/songs/${id}/write_lyrics/stream?style=${encodeURIComponent(style)}&rhyme_scheme=${encodeURIComponent(rhymeScheme)}`;
 
 export async function countSyllables(text: string): Promise<number[]> {
   const res = await fetch(`${API_URL}/utils/syllables`, {

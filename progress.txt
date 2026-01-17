@@ -1,30 +1,33 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T12:15:00Z
+Last Updated: 2026-01-16T12:45:00Z
 
-## Session: Implementation of Syllable Counter & Streaming
+## Session: Implementation of Stress Mode & Auto-Save
 
 ### Completed
-- Feature F004: Syllable Counter
-- Feature F025: Stream Response
-  - Backend `AIService` now supports `stream_lyrics`.
-  - Frontend editor now streams lyrics in real-time, providing immediate feedback to the user.
-  - Syllable counts update as the AI writes (due to the lyrics change trigger).
+- Feature F005: Stress Highlighting
+  - Backend analyzes stress patterns via Gemini.
+  - Frontend renders **bold** syllables in a separate view.
+- Feature F011: Auto-Save
+  - Implemented `SongUpdate` and `PUT` endpoint.
+  - Frontend debounces saves (2s) and updates "Last saved" indicator.
+  - Fixed accidental deletion of `create_song` endpoint during refactor.
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Implemented streaming logic on both backend and frontend.
-  - Integrated the streaming response into the existing SongEditor.
+  - Implemented backend and frontend logic for both features.
+  - Resolved regression in `songs.py`.
+  - Verified with tests.
 
 ### Context for Next Agent
 - **Priority:**
-  - F005: Stress Highlighting - Last major AI poetic feature.
-  - F011: Auto-Save - Ensure manual edits are persisted.
+  - F006: Rhyme Scheme Setup (Architect Agent).
+  - F007: Anti-Cliché Filter.
 - **Notes:**
-  - Streaming uses `text/plain` for simplicity.
-  - The `loadSong` call after streaming ensures the frontend is in sync with the final persisted state in the DB.
+  - The core editor is now very functional (Writes, Counts, Highlights, Saves).
+  - Next steps focus on "refining" the output (Architecture/Rhymes and Quality/Cliché).
 
 ## File Summary
-- backend/ai.py: Added streaming support
-- backend/api/songs.py: Added streaming endpoint
-- frontend/src/app/songs/[id]/page.tsx: Implemented stream consumption
+- backend/api/songs.py: Full song management
+- backend/api/utils.py: Syllables & Stress
+- frontend/src/app/songs/[id]/page.tsx: Robust Editor

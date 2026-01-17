@@ -22,6 +22,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   const [lyrics, setLyrics] = useState("");
   const [syllableCounts, setSyllableCounts] = useState<number[]>([]);
   const [writingLyrics, setWritingLyrics] = useState(false);
+  const [rhymeScheme, setRhymeScheme] = useState("Free Verse");
   
   // Stress State
   const [showStress, setShowStress] = useState(false);
@@ -116,7 +117,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     setShowStress(false); // Reset stress view
     
     try {
-      const url = getStreamLyricsUrl(song.id);
+      const url = getStreamLyricsUrl(song.id, "Modern", rhymeScheme);
       const response = await fetch(url);
       
       if (!response.body) throw new Error("No response body");
@@ -244,6 +245,17 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
               <h2>Lyrics</h2>
             </div>
             <div className="flex gap-2">
+                <select 
+                    value={rhymeScheme}
+                    onChange={(e) => setRhymeScheme(e.target.value)}
+                    disabled={writingLyrics}
+                    className="bg-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500 border-none"
+                >
+                    <option value="Free Verse">Free Verse</option>
+                    <option value="AABB">AABB</option>
+                    <option value="ABAB">ABAB</option>
+                    <option value="ABBA">ABBA</option>
+                </select>
                 <button
                   onClick={handleToggleStress}
                   disabled={analyzingStress || !lyrics}

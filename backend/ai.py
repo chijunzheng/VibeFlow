@@ -54,7 +54,7 @@ class AIService:
             logger.error(f"Error generating vibe cloud: {str(e)}")
             raise e
 
-    def stream_lyrics(self, title: str, vibe_cloud: List[str], style: str = "Modern"):
+    def stream_lyrics(self, title: str, vibe_cloud: List[str], style: str = "Modern", rhyme_scheme: str = "Free Verse"):
         """
         Yields lyrics chunks from Gemini Pro.
         """
@@ -62,11 +62,18 @@ class AIService:
             raise Exception("Gemini API Key not configured")
         
         anchors_str = ", ".join(vibe_cloud)
-        prompt = f"Title: {title}\nVibe Cloud Anchors: {anchors_str}\nStyle: {style}\n\nWrite a verse and a chorus for this song."
+        prompt = (
+            f"Title: {title}\n"
+            f"Vibe Cloud Anchors: {anchors_str}\n"
+            f"Style: {style}\n"
+            f"Rhyme Scheme: {rhyme_scheme}\n\n"
+            "Write a verse and a chorus for this song."
+        )
 
         system_instruction = (
             "You are 'The Ghostwriter', a top-tier lyricist. "
             "Write lyrics that strictly incorporate the provided 'Vibe Cloud' anchors to ensure concrete imagery. "
+            "Follow the requested Rhyme Scheme if specified (e.g., AABB, ABAB). "
             "Avoid 'AI-isms' (shimmering, tapestry, embrace, whisper). "
             "Use a conversational, raw, and modern tone. "
             "Structure: [Verse] then [Chorus]. "

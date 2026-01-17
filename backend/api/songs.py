@@ -71,6 +71,7 @@ def generate_vibe(
 def write_lyrics(
     song_id: int,
     style: str = Body(default="Modern", embed=True),
+    rhyme_scheme: str = Body(default="Free Verse", embed=True),
     session: Session = Depends(get_session)
 ):
     """
@@ -91,6 +92,7 @@ def write_lyrics(
 def stream_lyrics(
     song_id: int,
     style: str = "Modern",
+    rhyme_scheme: str = "Free Verse",
     session: Session = Depends(get_session)
 ):
     """
@@ -105,7 +107,7 @@ def stream_lyrics(
 
     def generator():
         full_lyrics = ""
-        for chunk in ai_service.stream_lyrics(song.title, song.vibe_cloud, style):
+        for chunk in ai_service.stream_lyrics(song.title, song.vibe_cloud, style, rhyme_scheme):
             full_lyrics += chunk
             yield chunk
         
