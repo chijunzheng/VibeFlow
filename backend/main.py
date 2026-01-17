@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from backend.config import settings
 from backend.database import create_db_and_tables
-from backend.api import songs
+from backend.api import songs, utils
 import logging
 
 # Configure logging
@@ -52,14 +52,4 @@ app.add_middleware(
 )
 
 app.include_router(songs.router)
-
-
-@app.get("/")
-async def root():
-    return {
-        "message": "Welcome to VibeFlow Studio API",
-        "status": "running",
-        "config": {
-            "gemini_configured": settings.is_gemini_configured
-        }
-    }
+app.include_router(utils.router)

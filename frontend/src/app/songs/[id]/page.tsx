@@ -1,18 +1,10 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
-import { fetchSong, generateVibe, writeLyrics, Song } from "@/lib/api";
+import { useEffect, useState, useRef } from "react";
+import { fetchSong, generateVibe, writeLyrics, countSyllables, Song } from "@/lib/api";
 import { Loader2, Sparkles, PenTool } from "lucide-react";
 
 export default function SongEditor({ params }: { params: Promise<{ id: string }> }) {
-  // Use React.use() to unwrap params in Next.js 15+ (Next.js 14 also supports async params in server components, but this is client)
-  // Actually params is a promise in recent Next.js versions for client components too often?
-  // Let's assume standard client component behavior where params is passed. 
-  // Wait, in Next 15 params is a Promise. In Next 14 it's an object. 
-  // The scaffold used "create-next-app@latest" which is likely Next 15 or 14. 
-  // I will use `use(params)` pattern if it's a promise, or just wait for it.
-  
-  // Safe approach for Next 14/15 compat:
   const [songId, setSongId] = useState<number | null>(null);
   
   useEffect(() => {
@@ -27,20 +19,47 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   const [generatingVibe, setGeneratingVibe] = useState(false);
 
   // Lyrics State
+  const [lyrics, setLyrics] = useState("");
+  const [syllableCounts, setSyllableCounts] = useState<number[]>([]);
   const [writingLyrics, setWritingLyrics] = useState(false);
+  
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (songId) loadSong(songId);
   }, [songId]);
 
+  useEffect(() => {
+    if (lyrics) {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        updateSyllableCounts(lyrics);
+      }, 500);
+    } else {
+      setSyllableCounts([]);
+    }
+  }, [lyrics]);
+
   const loadSong = async (id: number) => {
     try {
       const data = await fetchSong(id);
       setSong(data);
+      if (data.content?.lyrics) {
+        setLyrics(data.content.lyrics);
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateSyllableCounts = async (text: string) => {
+    try {
+      const counts = await countSyllables(text);
+      setSyllableCounts(counts);
+    } catch (err) {
+      console.error("Syllable counting failed", err);
     }
   };
 
@@ -63,6 +82,9 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     try {
       const updatedSong = await writeLyrics(song.id);
       setSong(updatedSong);
+      if (updatedSong.content?.lyrics) {
+        setLyrics(updatedSong.content.lyrics);
+      }
     } catch (err) {
       alert("Failed to write lyrics");
     } finally {
@@ -135,12 +157,21 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
             </button>
           </div>
 
-          <textarea
-            className="flex-1 w-full bg-slate-950/50 border border-slate-800 rounded-lg p-4 text-slate-300 font-mono text-sm focus:outline-none focus:border-slate-700 resize-none leading-relaxed"
-            placeholder="Lyrics will appear here..."
-            value={song.content?.lyrics || ""}
-            readOnly // For now, read only until manual edit feature
-          />
+          <div className="flex-1 relative flex">
+             <div className="w-10 bg-slate-950/30 border-r border-slate-800 flex flex-col pt-4 items-center text-[10px] text-slate-500 font-mono space-y-[1.15rem] pointer-events-none select-none">
+                {syllableCounts.map((count, i) => (
+                  <div key={i} className="h-4 flex items-center justify-center">
+                    {count > 0 ? count : ""}
+                  </div>
+                ))}
+             </div>
+             <textarea
+                className="flex-1 bg-slate-950/50 border-none rounded-r-lg p-4 text-slate-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
+                placeholder="Start writing..."
+                value={lyrics}
+                onChange={(e) => setLyrics(e.target.value)}
+              />
+          </div>
         </div>
       </div>
     </div>
