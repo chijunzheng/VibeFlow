@@ -414,22 +414,22 @@
       "description": "Switch between songs via sidebar.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0046",
           "description": "Step 1: Input/Action for Sidebar Navigation",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0047",
           "description": "Step 2: Verification for Sidebar Navigation",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0048",
           "description": "Step 3: Persistence/State Check for Sidebar Navigation",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -846,22 +846,22 @@
       "description": "Show 'Create New' or 'Recent Songs' on load.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0094",
           "description": "Step 1: Input/Action for Home Dashboard",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0095",
           "description": "Step 2: Verification for Home Dashboard",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0096",
           "description": "Step 3: Persistence/State Check for Home Dashboard",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -948,5 +948,5 @@
       "files_modified": []
     }
   ],
-  "updated_at": "2026-01-16T22:13:06.387623"
+  "updated_at": "2026-01-16T22:15:04.398802"
 }
