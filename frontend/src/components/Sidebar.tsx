@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Music, Home } from "lucide-react";
-import { fetchSongs, createSong, Song } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { Plus, Music, Home, Trash2 } from "lucide-react";
+import { fetchSongs, createSong, deleteSong, Song } from "@/lib/api";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Sidebar() {
   const [songs, setSongs] = useState<Song[]>([]);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     loadSongs();
-  }, []);
+  }, [pathname]); // Refresh when navigating (to catch renames etc)
 
   const loadSongs = async () => {
     try {
@@ -32,6 +33,22 @@ export default function Sidebar() {
       router.push(`/songs/${newSong.id}`);
     } catch (err) {
       alert("Failed to create song");
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Delete this song permanently?")) return;
+    
+    try {
+      await deleteSong(id);
+      setSongs(songs.filter(s => s.id !== id));
+      if (pathname === `/songs/${id}`) {
+        router.push("/");
+      }
+    } catch (err) {
+      alert("Failed to delete song");
     }
   };
 
@@ -57,7 +74,7 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto px-2">
         <Link
           href="/"
-          className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+          className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors ${pathname === '/' ? 'bg-slate-800 text-white' : 'text-slate-300'}`}
         >
           <Home size={18} />
           Home
@@ -72,12 +89,23 @@ export default function Sidebar() {
             <Link
               key={song.id}
               href={`/songs/${song.id}`}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors truncate"
+              className={`group flex items-center justify-between p-3 rounded-lg hover:bg-slate-800 transition-colors ${pathname === `/songs/${song.id}` ? 'bg-slate-800 text-white' : 'text-slate-300'}`}
             >
-              <Music size={16} className="shrink-0" />
-              <span className="truncate">{song.title}</span>
+              <div className="flex items-center gap-3 truncate">
+                <Music size={16} className="shrink-0" />
+                <span className="truncate">{song.title}</span>
+              </div>
+              <button
+                onClick={(e) => handleDelete(e, song.id)}
+                className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-all"
+              >
+                <Trash2 size={14} />
+              </button>
             </Link>
           ))}
+          {songs.length === 0 && (
+            <div className="p-3 text-xs text-slate-600 italic">No songs yet.</div>
+          )}
         </div>
       </nav>
     </div>

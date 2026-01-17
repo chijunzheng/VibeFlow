@@ -1,28 +1,29 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T13:00:00Z
+Last Updated: 2026-01-16T13:15:00Z
 
-## Session: Implementation of Rhyme Schemes
+## Session: Implementation of Anti-Cliché Filter
 
 ### Completed
-- Feature F006: Rhyme Scheme Setup
-  - Backend: Updated `stream_lyrics` to inject rhyme scheme instruction into prompt.
-  - Frontend: Added dropdown to select "Free Verse", "AABB", "ABAB", "ABBA".
-  - Frontend: Passes selection to streaming API.
+- Feature F007: Anti-Cliché Filter
+  - Established `backend/constants.py` as the source of truth for banned terms.
+  - Reinforced `AIService` system instructions with an explicit list of prohibited clichés.
+  - Added `check_cliches` utility to programmatically verify lyric quality.
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Updated AI Service, API, API Client, and UI.
-  - Integration verified manually via code path analysis (API receives param -> Prompt updated).
+  - Defined the banned words list based on common AI writing patterns.
+  - Integrated the list into the Gemini Pro prompt for F003/F025.
+  - Verified logic with tests.
 
 ### Context for Next Agent
 - **Priority:**
-  - F007: Anti-Cliché Filter - Final "Ghostwriter" refinement.
-  - F013/F014: Song Management (Rename/Delete) - Housekeeping features.
+  - F013/F014: Song Management (Delete/Rename) - Crucial for local persistence UX.
+  - F008: Manual Edit - Verify and polish the existing auto-save for manual typing.
 - **Notes:**
-  - The AI is now directed by Vibe, Style, and Rhyme Scheme.
+  - The Ghostwriter is now highly tuned for raw, modern songwriting.
 
 ## File Summary
-- backend/ai.py: Prompt logic
-- backend/api/songs.py: Endpoint updates
-- frontend/src/app/songs/[id]/page.tsx: Editor UI updates
+- backend/constants.py: Banned AI-isms
+- backend/ai.py: Updated Ghostwriter prompt
+- backend/utils.py: Cliché check logic

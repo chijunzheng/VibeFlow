@@ -43,6 +43,15 @@ def update_song(song_id: int, song_update: SongUpdate, session: Session = Depend
     session.refresh(db_song)
     return db_song
 
+@router.delete("/{song_id}")
+def delete_song(song_id: int, session: Session = Depends(get_session)):
+    song = session.get(Song, song_id)
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    session.delete(song)
+    session.commit()
+    return {"ok": True}
+
 @router.post("/{song_id}/generate_vibe", response_model=SongRead)
 def generate_vibe(
     song_id: int, 

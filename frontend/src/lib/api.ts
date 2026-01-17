@@ -42,6 +42,13 @@ export async function updateSong(id: number, data: Partial<Song>): Promise<Song>
   return res.json();
 }
 
+export async function deleteSong(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/songs/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete song");
+}
+
 export async function generateVibe(id: number, prompt: string): Promise<Song> {
   const res = await fetch(`${API_URL}/songs/${id}/generate_vibe`, {
     method: "POST",
