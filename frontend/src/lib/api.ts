@@ -91,3 +91,13 @@ export async function analyzeStress(text: string): Promise<string> {
   if (!res.ok) throw new Error("Failed to analyze stress");
   return res.json();
 }
+
+export async function rewriteText(text: string, selection: string, instructions: string): Promise<string> {
+  const res = await fetch(`${API_URL}/utils/rewrite`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, selection, instructions }),
+  });
+  if (!res.ok) throw new Error("Failed to rewrite text");
+  return res.json();
+}

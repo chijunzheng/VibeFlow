@@ -21,3 +21,17 @@ def analyze_stress(text: str = Body(..., embed=True)):
         return ai_service.get_stress_patterns(text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/rewrite", response_model=str)
+def rewrite(
+    text: str = Body(..., embed=True), 
+    selection: str = Body(..., embed=True), 
+    instructions: str = Body(default="Rewrite this", embed=True)
+):
+    """
+    Rewrite a selection of text using Gemini.
+    """
+    try:
+        return ai_service.rewrite_text(text, selection, instructions)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

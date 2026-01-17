@@ -225,22 +225,22 @@
       "description": "User can request a regeneration of a specific line.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0025",
           "description": "Step 1: Input/Action for Regenerate Line",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0026",
           "description": "Step 2: Verification for Regenerate Line",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0027",
           "description": "Step 3: Persistence/State Check for Regenerate Line",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -252,22 +252,22 @@
       "description": "User can reset the current workspace.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0028",
           "description": "Step 1: Input/Action for Clear Session",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0029",
           "description": "Step 2: Verification for Clear Session",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0030",
           "description": "Step 3: Persistence/State Check for Clear Session",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -306,22 +306,22 @@
       "description": "Opening a song from the library loads all data correctly.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0034",
           "description": "Step 1: Input/Action for Load Song",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0035",
           "description": "Step 2: Verification for Load Song",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0036",
           "description": "Step 3: Persistence/State Check for Load Song",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -495,22 +495,22 @@
       "description": "Editor resizes correctly on window resize.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0055",
           "description": "Step 1: Input/Action for Responsive Editor",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0056",
           "description": "Step 2: Verification for Responsive Editor",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0057",
           "description": "Step 3: Persistence/State Check for Responsive Editor",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -522,22 +522,22 @@
       "description": "Colors match the VibeFlow aesthetic.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0058",
           "description": "Step 1: Input/Action for Theme Consistency",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0059",
           "description": "Step 2: Verification for Theme Consistency",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0060",
           "description": "Step 3: Persistence/State Check for Theme Consistency",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -549,22 +549,22 @@
       "description": "Buttons show active/disabled states.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0061",
           "description": "Step 1: Input/Action for Input Feedback",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0062",
           "description": "Step 2: Verification for Input Feedback",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0063",
           "description": "Step 3: Persistence/State Check for Input Feedback",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -765,22 +765,22 @@
       "description": "Show friendly error if Gemini is unreachable.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0085",
           "description": "Step 1: Input/Action for API Failure",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0086",
           "description": "Step 2: Verification for API Failure",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0087",
           "description": "Step 3: Persistence/State Check for API Failure",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -792,22 +792,22 @@
       "description": "Prevent submission of empty prompts.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0088",
           "description": "Step 1: Input/Action for Empty Input",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0089",
           "description": "Step 2: Verification for Empty Input",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0090",
           "description": "Step 3: Persistence/State Check for Empty Input",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -873,22 +873,22 @@
       "description": "Direct URL to song ID works.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0097",
           "description": "Step 1: Input/Action for Editor Route",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0098",
           "description": "Step 2: Verification for Editor Route",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0099",
           "description": "Step 3: Persistence/State Check for Editor Route",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -948,5 +948,5 @@
       "files_modified": []
     }
   ],
-  "updated_at": "2026-01-16T22:37:46.958987"
+  "updated_at": "2026-01-16T22:41:17.661203"
 }

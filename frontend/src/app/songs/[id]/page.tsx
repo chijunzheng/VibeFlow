@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, analyzeStress, updateSong, Song } from "@/lib/api";
-import { Loader2, Sparkles, PenTool, Activity, Edit2, Check, X, Copy, CheckCircle2 } from "lucide-react";
+import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, analyzeStress, rewriteText, updateSong, Song } from "@/lib/api";
+import { Loader2, Sparkles, PenTool, Activity, Edit2, Check, X, Copy, CheckCircle2, RotateCcw, Trash } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import ThinkingIndicator from "@/components/ThinkingIndicator";
 
@@ -43,6 +43,10 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   // Export State
   const [copied, setCopied] = useState(false);
   
+  // Rewrite State
+  const [rewriting, setRewriting] = useState(false);
+  
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -57,7 +61,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
         updateSyllableCounts(lyrics);
       }, 500);
       
-      if (song && !loading && !writingLyrics) {
+      if (song && !loading && !writingLyrics && !rewriting) {
         if (saveTimer.current) clearTimeout(saveTimer.current);
         setSaving(true);
         saveTimer.current = setTimeout(() => {
@@ -144,14 +148,11 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     try {
       const url = getStreamLyricsUrl(song.id, "Modern", rhymeScheme);
       const response = await fetch(url);
-      
       if (!response.body) throw new Error("No response body");
-      
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let finished = false;
       let accumulatedLyrics = "";
-
       while (!finished) {
         const { value, done } = await reader.read();
         finished = done;
@@ -161,10 +162,8 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
           setLyrics(accumulatedLyrics);
         }
       }
-      
       toast("Lyrics drafted", "success");
       loadSong(song.id);
-      
     } catch (err) {
       console.error(err);
       toast("Failed to draft lyrics", "error");
@@ -201,6 +200,52 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast("Failed to copy", "error");
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!song || !confirm("Clear all vibes and lyrics?")) return;
+    try {
+        const updated = await updateSong(song.id, { 
+            vibe_cloud: [], 
+            content: { ...song.content, lyrics: "" },
+            thought_sig: ""
+        });
+        setSong(updated);
+        setLyrics("");
+        toast("Session cleared", "success");
+    } catch (err) {
+        toast("Clear failed", "error");
+    }
+  };
+
+  const handleRewrite = async () => {
+    if (!song || !lyrics || !textareaRef.current) return;
+    
+    const selection = lyrics.substring(
+        textareaRef.current.selectionStart,
+        textareaRef.current.selectionEnd
+    );
+
+    if (!selection) {
+        toast("Select some text to rewrite", "info");
+        return;
+    }
+
+    const instructions = prompt("How should I rewrite this?", "Make it more poetic");
+    if (!instructions) return;
+
+    setRewriting(true);
+    try {
+        const result = await rewriteText(lyrics, selection, instructions);
+        const newLyrics = lyrics.replace(selection, result);
+        setLyrics(newLyrics);
+        handleAutoSave(newLyrics); // Immediate save for rewrite
+        toast("Text rewritten", "success");
+    } catch (err) {
+        toast("Rewrite failed", "error");
+    } finally {
+        setRewriting(false);
     }
   };
   
@@ -250,7 +295,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
             <p className="text-slate-500 text-sm mt-1">Created {new Date(song.created_at).toLocaleDateString()}</p>
         </div>
         <div className="flex flex-col items-end gap-2 pb-1">
-            <ThinkingIndicator active={generatingVibe || writingLyrics || analyzingStress} />
+            <ThinkingIndicator active={generatingVibe || writingLyrics || analyzingStress || rewriting} />
             <div className="text-[10px] text-slate-500">
                 {saving ? (
                     <span className="flex items-center gap-1 text-violet-400">
@@ -266,9 +311,18 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
         {/* Left Panel: Vibe Engine */}
         <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-800/50 p-4 flex flex-col gap-4 overflow-y-auto shadow-xl">
-          <div className="flex items-center gap-2 text-violet-400 font-semibold">
-            <Sparkles size={18} />
-            <h2>Vibe Cloud</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-violet-400 font-semibold">
+                <Sparkles size={18} />
+                <h2>Vibe Cloud</h2>
+            </div>
+            <button 
+                onClick={handleClearAll}
+                className="p-1.5 text-slate-600 hover:text-red-400 transition-colors"
+                title="Clear all"
+            >
+                <Trash size={14} />
+            </button>
           </div>
           <div className="space-y-2">
             <input
@@ -315,6 +369,15 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                 >
                   {copied ? <CheckCircle2 size={12} className="text-green-400" /> : <Copy size={12} />}
                   {copied ? "Copied" : "Copy"}
+                </button>
+                <button
+                  onClick={handleRewrite}
+                  disabled={rewriting || !lyrics}
+                  className="bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2 border border-slate-700/30"
+                  title="Rewrite selection"
+                >
+                  {rewriting ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
+                  Rewrite
                 </button>
                 <select 
                     value={rhymeScheme}
@@ -363,6 +426,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                  </div>
              ) : (
                  <textarea
+                    ref={textareaRef}
                     className="flex-1 bg-transparent p-4 text-slate-200 font-mono text-sm focus:outline-none resize-none leading-relaxed selection:bg-violet-500/30"
                     placeholder="Start writing..."
                     value={lyrics}

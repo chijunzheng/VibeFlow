@@ -130,4 +130,33 @@ class AIService:
             logger.error(f"Error analyzing stress: {str(e)}")
             raise e
 
+    def rewrite_text(self, original_text: str, selection: str, instructions: str = "Rewrite this to be more poetic") -> str:
+        """
+        Rewrites a specific selection of text based on instructions.
+        """
+        if not self.client:
+            raise Exception("Gemini API Key not configured")
+
+        system_instruction = (
+            "You are an expert songwriter. The user wants to rewrite a specific part of their lyrics. "
+            "Context: " + original_text + "\n"
+            "Target: " + selection + "\n"
+            "Instruction: " + instructions + "\n"
+            "Return ONLY the new version of the 'Target' text. Maintain the syllable count if possible unless instructed otherwise."
+        )
+
+        try:
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash-exp",
+                contents=f"Target to rewrite: {selection}",
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.7
+                )
+            )
+            return response.text if response.text else selection
+        except Exception as e:
+            logger.error(f"Error rewriting text: {str(e)}")
+            raise e
+
 ai_service = AIService()
