@@ -51,6 +51,26 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleWriteLyrics();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        if (lyrics) handleAutoSave(lyrics);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "S") {
+        e.preventDefault();
+        handleToggleStress();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lyrics, song, writingLyrics, analyzingStress, rhymeScheme]); // Dependencies for state-accessing functions
+
+  useEffect(() => {
     if (songId) loadSong(songId);
   }, [songId]);
 
