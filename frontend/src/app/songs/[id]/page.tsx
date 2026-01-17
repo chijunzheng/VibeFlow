@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, analyzeStress, updateSong, Song } from "@/lib/api";
-import { Loader2, Sparkles, PenTool, Activity, Edit2, Check, X } from "lucide-react";
+import { Loader2, Sparkles, PenTool, Activity, Edit2, Check, X, Copy, CheckCircle2 } from "lucide-react";
 
 export default function SongEditor({ params }: { params: Promise<{ id: string }> }) {
   const [songId, setSongId] = useState<number | null>(null);
@@ -36,6 +36,9 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   // Auto-save State
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // Export State
+  const [copied, setCopied] = useState(false);
   
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
@@ -93,7 +96,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   };
   
   const handleRename = async () => {
-    if (!song || !titleInput.strip()) return;
+    if (!song || !titleInput.trim()) return;
     try {
         const updated = await updateSong(song.id, { title: titleInput });
         setSong(updated);
@@ -179,6 +182,17 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
       setAnalyzingStress(false);
     }
   };
+
+  const handleCopy = async () => {
+    if (!lyrics) return;
+    try {
+      await navigator.clipboard.writeText(lyrics);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy", err);
+    }
+  };
   
   const renderStressContent = (text: string) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -237,7 +251,8 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-        <div className="lg:col-span-1 bg-slate-900/50 rounded-xl border border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto">
+        {/* Left Panel: Vibe Engine */}
+        <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-800/50 p-4 flex flex-col gap-4 overflow-y-auto shadow-xl">
           <div className="flex items-center gap-2 text-violet-400 font-semibold">
             <Sparkles size={18} />
             <h2>Vibe Cloud</h2>
@@ -261,7 +276,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
             {song.vibe_cloud?.map((anchor, i) => (
-              <span key={i} className="px-3 py-1 bg-slate-800/80 border border-slate-700 rounded-full text-xs text-slate-300">
+              <span key={i} className="px-3 py-1 bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-full text-xs text-slate-300">
                 {anchor}
               </span>
             ))}
@@ -271,18 +286,28 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-slate-900/50 rounded-xl border border-slate-800 p-4 flex flex-col gap-4 overflow-hidden">
+        {/* Center/Right Panel: Editor */}
+        <div className="lg:col-span-2 bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-800/50 p-4 flex flex-col gap-4 overflow-hidden shadow-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-slate-200 font-semibold">
               <PenTool size={18} />
               <h2>Lyrics</h2>
             </div>
             <div className="flex gap-2">
+                <button
+                  onClick={handleCopy}
+                  disabled={!lyrics}
+                  className="bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2 border border-slate-700/30"
+                  title="Copy to clipboard"
+                >
+                  {copied ? <CheckCircle2 size={12} className="text-green-400" /> : <Copy size={12} />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
                 <select 
                     value={rhymeScheme}
                     onChange={(e) => setRhymeScheme(e.target.value)}
                     disabled={writingLyrics}
-                    className="bg-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500 border-none"
+                    className="bg-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500 border border-slate-700/30"
                 >
                     <option value="Free Verse">Free Verse</option>
                     <option value="AABB">AABB</option>
@@ -292,10 +317,10 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                 <button
                   onClick={handleToggleStress}
                   disabled={analyzingStress || !lyrics}
-                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2 ${
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2 border border-slate-700/30 ${
                     showStress 
                       ? "bg-violet-600 text-white" 
-                      : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      : "bg-slate-800/50 hover:bg-slate-700/50 text-slate-300"
                   }`}
                 >
                   {analyzingStress ? <Loader2 size={12} className="animate-spin" /> : <Activity size={12} />}
@@ -304,15 +329,15 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                 <button
                   onClick={handleWriteLyrics}
                   disabled={writingLyrics || !song.vibe_cloud?.length}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2 border border-slate-700/30"
                 >
                   {writingLyrics ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                   Ghostwrite
                 </button>
             </div>
           </div>
-          <div className="flex-1 relative flex overflow-hidden">
-             <div className="w-10 bg-slate-950/30 border-r border-slate-800 flex flex-col pt-4 items-center text-[10px] text-slate-500 font-mono space-y-[1.15rem] pointer-events-none select-none overflow-hidden">
+          <div className="flex-1 relative flex overflow-hidden rounded-lg border border-slate-800/50">
+             <div className="w-10 bg-slate-950/40 backdrop-blur-sm border-r border-slate-800/50 flex flex-col pt-4 items-center text-[10px] text-slate-500 font-mono space-y-[1.15rem] pointer-events-none select-none overflow-hidden">
                 {syllableCounts.map((count, i) => (
                   <div key={i} className="h-4 flex items-center justify-center">
                     {count > 0 ? count : ""}
@@ -320,12 +345,12 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                 ))}
              </div>
              {showStress ? (
-                 <div className="flex-1 bg-slate-950/50 border-none rounded-r-lg p-4 text-slate-300 font-mono text-sm overflow-y-auto leading-relaxed whitespace-pre-wrap">
+                 <div className="flex-1 bg-slate-950/20 p-4 text-slate-300 font-mono text-sm overflow-y-auto leading-relaxed whitespace-pre-wrap">
                     {renderStressContent(stressContent)}
                  </div>
              ) : (
                  <textarea
-                    className="flex-1 bg-slate-950/50 border-none rounded-r-lg p-4 text-slate-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
+                    className="flex-1 bg-slate-950/20 p-4 text-slate-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
                     placeholder="Start writing..."
                     value={lyrics}
                     onChange={(e) => setLyrics(e.target.value)}

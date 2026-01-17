@@ -1,29 +1,32 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T13:15:00Z
+Last Updated: 2026-01-16T13:30:00Z
 
-## Session: Implementation of Anti-Cliché Filter
+## Session: Song Management Features
 
 ### Completed
-- Feature F007: Anti-Cliché Filter
-  - Established `backend/constants.py` as the source of truth for banned terms.
-  - Reinforced `AIService` system instructions with an explicit list of prohibited clichés.
-  - Added `check_cliches` utility to programmatically verify lyric quality.
+- Feature F013: Delete Song
+  - Added backend support for permanent deletion.
+  - Sidebar now has a trash icon that appears on hover.
+  - Redirects user to home if the active song is deleted.
+- Feature F014: Rename Song
+  - Title in Editor is now clickable and editable.
+  - Changes are synced to backend via `PUT`.
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Defined the banned words list based on common AI writing patterns.
-  - Integrated the list into the Gemini Pro prompt for F003/F025.
-  - Verified logic with tests.
+  - Refined the SongEditor UI with inline editing components.
+  - Polished the Sidebar for better navigation feedback.
 
 ### Context for Next Agent
 - **Priority:**
-  - F013/F014: Song Management (Delete/Rename) - Crucial for local persistence UX.
-  - F008: Manual Edit - Verify and polish the existing auto-save for manual typing.
+  - F008: Manual Edit - Ensure manual changes are robustly handled.
+  - F015: Export Lyrics - Copy to clipboard/file.
+  - F017: Glassmorphic Panels - Visual polish.
 - **Notes:**
-  - The Ghostwriter is now highly tuned for raw, modern songwriting.
+  - Auto-save is triggered every 2s after typing stops.
 
 ## File Summary
-- backend/constants.py: Banned AI-isms
-- backend/ai.py: Updated Ghostwriter prompt
-- backend/utils.py: Cliché check logic
+- backend/api/songs.py: Full CRUD (Create, Read, Update, Delete)
+- frontend/src/components/Sidebar.tsx: Interactive song list
+- frontend/src/app/songs/[id]/page.tsx: Full editor with renaming

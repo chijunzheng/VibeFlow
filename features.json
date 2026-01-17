@@ -198,22 +198,22 @@
       "description": "User can manually edit generated lyrics.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0022",
           "description": "Step 1: Input/Action for Manual Edit",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0023",
           "description": "Step 2: Verification for Manual Edit",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0024",
           "description": "Step 3: Persistence/State Check for Manual Edit",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -387,22 +387,22 @@
       "description": "User can copy lyrics to clipboard or save as text file.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0043",
           "description": "Step 1: Input/Action for Export Lyrics",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0044",
           "description": "Step 2: Verification for Export Lyrics",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0045",
           "description": "Step 3: Persistence/State Check for Export Lyrics",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -441,22 +441,22 @@
       "description": "Verify visual styling of panels.",
       "priority": 1,
       "dependencies": [],
-      "status": "pending",
+      "status": "complete",
       "test_cases": [
         {
           "id": "T0049",
           "description": "Step 1: Input/Action for Glassmorphic Panels",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0050",
           "description": "Step 2: Verification for Glassmorphic Panels",
-          "status": "pending"
+          "status": "passed"
         },
         {
           "id": "T0051",
           "description": "Step 3: Persistence/State Check for Glassmorphic Panels",
-          "status": "pending"
+          "status": "passed"
         }
       ],
       "files_modified": []
@@ -948,5 +948,5 @@
       "files_modified": []
     }
   ],
-  "updated_at": "2026-01-16T22:27:21.365505"
+  "updated_at": "2026-01-16T22:28:51.767316"
 }
