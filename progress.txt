@@ -1,33 +1,29 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T14:30:00Z
+Last Updated: 2026-01-16T15:00:00Z
 
-## Session: Feedback & Visual Polish
+## Session: Thought Memory & Context
 
 ### Completed
-- Feature F018: Thinking Indicator
-  - Created a custom pulsing and pinging indicator for AI states.
-  - Placed it prominently in the header during generation.
-- Feature F022: Toast Notifications
-  - Implemented a lightweight `ToastContext`.
-  - Added success/error feedback for all major user actions (Rename, Vibe, Lyrics, Copy).
-- UI Polish
-  - Enhanced glassmorphic effects with `shadow-xl`, `backdrop-blur`, and subtle borders.
-  - Improved input fields with `shadow-inner` and focus rings.
+- Feature F026: Model Switching
+  - Confirmed system uses `gemini-2.0-flash-exp` for Vibe Clouds (Fast/Low Thinking).
+  - Confirmed system uses `gemini-2.0-flash-thinking-exp` for Lyrics (High Reasoning).
+- Feature F027: Thought Signature Storage
+  - Implemented persistent chat history in `song.thought_sig`.
+  - The Ghostwriter now remembers previous verses and iterates based on context.
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Built the notification infrastructure and thinking state visuals.
-  - Integrated everything into the main Editor flow.
+  - Refactored `stream_lyrics` to handle full conversation history.
+  - Updated DB logic to save the conversation state.
 
 ### Context for Next Agent
 - **Priority:**
-  - F026: Model Switching - Allow user to toggle between Flash and Pro (Thinking) explicitly? The spec says Flash for vibes, Pro for writing. Maybe add a toggle for "Creative Intensity".
-  - F027: Thought Signature Storage - Persistence of AI context.
+  - F028: Token Usage - Basic handling (maybe just logging usage metadata if available).
+  - F029/F030/F031: Error Handling - Polish the error states.
 - **Notes:**
-  - Over 50% of features are now complete.
+  - The "AI Co-Writer" is now stateful.
 
 ## File Summary
-- frontend/src/context/ToastContext.tsx: Global feedback
-- frontend/src/components/ThinkingIndicator.tsx: AI pulse
-- frontend/src/app/songs/[id]/page.tsx: Fully interactive editor
+- backend/ai.py: Chat-aware generation
+- backend/api/songs.py: History management
