@@ -30,7 +30,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   const [lyrics, setLyrics] = useState("");
   const [syllableCounts, setSyllableCounts] = useState<number[]>([]);
   const [writingLyrics, setWritingLyrics] = useState(false);
-  const [rhymeScheme, setRhymeScheme] = useState("Free Verse");
+  const [rhymeScheme, setRhymeScheme] = useState("ABAB");
 
   // Stress State
   const [showStress, setShowStress] = useState(false);
@@ -152,8 +152,13 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     try {
       const candidates = await brainstormVibes(vibePrompt);
       setVibeCandidates(candidates);
+      if (song) {
+        const updated = await updateSong(song.id, {
+          content: { ...(song.content || {}), seed_prompt: vibePrompt }
+        });
+        setSong(updated);
+      }
       toast("Vibes brainstormed! Select your favorites.", "success");
-      setVibePrompt("");
     } catch (err) {
       toast("Failed to brainstorm", "error");
     } finally {
@@ -186,14 +191,22 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     setWritingLyrics(true);
     setLyrics("");
     setShowStress(false);
-    const seedText = vibePrompt.trim();
+    const storedSeed = String(song.content?.seed_prompt || "").trim();
+    const seedText = vibePrompt.trim() || storedSeed;
+    const effectiveSeed = seedText || song.title;
 
     try {
+      if (seedText && seedText !== storedSeed) {
+        const updated = await updateSong(song.id, {
+          content: { ...(song.content || {}), seed_prompt: seedText }
+        });
+        setSong(updated);
+      }
       const url = getStreamLyricsUrl(
         song.id,
         "Modern",
         rhymeScheme,
-        seedText ? seedText : undefined
+        effectiveSeed
       );
       const response = await fetch(url);
       if (!response.ok) {
@@ -271,7 +284,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     try {
       const updated = await updateSong(song.id, {
         vibe_cloud: [],
-        content: { ...song.content, lyrics: "" },
+        content: { ...(song.content || {}), lyrics: "", seed_prompt: "" },
         thought_sig: ""
       });
       setSong(updated);

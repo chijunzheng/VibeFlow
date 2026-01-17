@@ -84,9 +84,10 @@ def test_stream_lyrics(client: TestClient):
         mock_stream.assert_called_once()
         call_args = mock_stream.call_args[0]
         assert call_args[0] == "Neon City"
-        # Seed includes anchors now
-        assert call_args[1] == "Neon City (Neon, Light)"
+        assert call_args[1] == "Neon"
         assert call_args[2] == "Modern" # default style
+        assert call_args[3] == "Free Verse"
+        assert mock_stream.call_args.kwargs["anchors"] == mock_anchors
 
 def test_get_stress_patterns(client: TestClient):
     """Test stress pattern analysis."""

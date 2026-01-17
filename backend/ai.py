@@ -92,80 +92,128 @@ class AIService:
             logger.error(f"Vibe Curation error: {e}")
             return candidates[:5]
 
-    def architect_outline(self, title: str, anchors: List[str]) -> str:
-        """Agent A: The Architect - Outlines the song structure."""
-        prompt = f"Title: {title}\nAnchors: {', '.join(anchors)}\n\nOutline a song structure (Verse 1, Chorus, Verse 2, Bridge, Outro) with a brief narrative goal for each."
-        system_instruction = "You are 'The Architect'. Create a structural outline for a song. Be brief. Return only the outline."
+    def architect_outline(self, title: str, seed: str, anchors: List[str]) -> str:
+        """Agent A: The Architect - Outlines the song structure and theme."""
+        prompt = (
+            f"Title: {title}\n"
+            f"Seed Prompt: {seed}\n"
+            f"Anchors: {', '.join(anchors)}\n\n"
+            "Create the outline."
+        )
+        system_instruction = (
+            "You are 'The Architect'. Outline the song structure only, no lyrics. "
+            "Start with 'Theme:' followed by 1-2 sentences capturing the seed's deeper meaning. "
+            "Then write 'Anchor Map:' assigning 1 anchor to each section (max 1 per section). "
+            "Use 4-5 anchors total; paraphrase is fine but keep them recognizable. "
+            "Then list [Verse 1], [Chorus], [Verse 2], [Bridge], [Outro] with 2-3 bullet points each. "
+            "Anchors are texture, not the subject. Keep it concise."
+        )
         
         response = self.client.models.generate_content(
-            model=MODEL_PRO,
+            model=MODEL_FLASH  ,
             contents=prompt,
             config=types.GenerateContentConfig(system_instruction=system_instruction)
         )
         return response.text
 
-    def drafter_write(self, title: str, anchors: List[str], outline: str, style: str, rhyme_scheme: str) -> str:
+    def drafter_write(self, title: str, seed: str, anchors: List[str], outline: str, style: str, rhyme_scheme: str) -> str:
         """Agent B: The Drafter - Writes the raw content with tags."""
-        prompt = f"Title: {title}\nAnchors: {', '.join(anchors)}\nOutline: {outline}\nStyle: {style}\nRhyme Scheme: {rhyme_scheme}\n\nWrite the full lyrics."
+        prompt = (
+            f"Title: {title}\n"
+            f"Seed Prompt: {seed}\n"
+            f"Anchors: {', '.join(anchors)}\n"
+            f"Outline: {outline}\n"
+            f"Style: {style}\n"
+            f"Rhyme Scheme: {rhyme_scheme}\n\n"
+            "Write the full lyrics."
+        )
         system_instruction = (
-            "You are 'The Drafter'. Write raw, evocative lyrics based on the outline and anchors. "
+            "You are 'The Drafter'. Write raw, evocative lyrics based on the outline and seed. "
+            "Make the seed's deeper meaning central; anchors are subtle texture (max one per section). "
+            "Use the Anchor Map to place anchors so at least 4 anchors appear across the song. "
+            "Do not list anchors; weave them into lived-in lines. "
+            "Include 1-2 anchors close to verbatim so the selected vibes are recognizable. "
+            "Avoid repeating the seed words verbatim; show it in action instead. "
             "MANDATORY: Tag every section clearly using brackets, e.g., [Verse 1], [Chorus], [Bridge], [Outro]. "
             "Use 'Show, Don't Tell'. Do not force rhymes. Rhyme when it feels natural, but prioritize imagery and meaning."
         )
         
         response = self.client.models.generate_content(
-            model=MODEL_PRO,
+            model=MODEL_FLASH,
             contents=prompt,
             config=types.GenerateContentConfig(system_instruction=system_instruction, temperature=0.8)
         )
         return response.text
 
-    def editor_refine(self, lyrics: str) -> str:
+    def editor_refine(self, lyrics: str, seed: str, anchors: List[str]) -> str:
         """Agent C: The Editor - Removes clichés and polishes tone."""
         banned = ", ".join(BANNED_AI_WORDS)
-        prompt = f"Lyrics to refine:\n{lyrics}\n\nStrictly remove these clichés: {banned}. Rewrite to be more conversational and raw."
+        prompt = (
+            f"Seed Prompt: {seed}\n"
+            f"Anchors: {', '.join(anchors)}\n"
+            f"Lyrics to refine:\n{lyrics}\n\n"
+            f"Strictly remove these clichés: {banned}."
+        )
         system_instruction = (
             "You are 'The Editor'. Clean up the lyrics. Make them feel authentic and human. "
+            "If any line mirrors anchor phrasing or reads like a checklist of sensory details, rewrite it. "
+            "Ensure the seed's deeper meaning is present in each section without repeating the seed words. "
+            "Keep the anchor coverage: at least 4 anchors should still be felt, with 1-2 near-verbatim touches. "
             "MANDATORY: Preserve all section tags like [Verse 1], [Chorus], etc. "
             "Return ONLY the refined lyrics."
         )
         
         response = self.client.models.generate_content(
-            model=MODEL_PRO,
+            model=MODEL_FLASH,
             contents=prompt,
             config=types.GenerateContentConfig(system_instruction=system_instruction, temperature=0.7)
         )
         return response.text
 
-    def rhythmist_polish(self, lyrics: str) -> str:
+    def rhythmist_polish(self, lyrics: str, seed: str, rhyme_scheme: str) -> str:
         """Agent D: The Rhythmist - Final meter and stress check."""
-        prompt = f"Lyrics to polish:\n{lyrics}\n\nEnsure rhythmic consistency and natural flow."
+        prompt = (
+            f"Seed Prompt: {seed}\n"
+            f"Rhyme Scheme: {rhyme_scheme}\n"
+            f"Lyrics to polish:\n{lyrics}\n\n"
+            "Ensure rhythmic consistency and natural flow."
+        )
         system_instruction = (
             "You are 'The Rhythmist'. Perform a final rhythmic polish. Ensure the flow is perfect for singing. "
+            "Keep the seed's meaning central and avoid turning lines into anchor lists. "
+            "If a rhyme scheme is specified (not 'Free Verse'), enforce it on line endings in each section. "
+            "If 'Free Verse', use light end-rhyme or slant rhyme in the chorus for cohesion. "
             "MANDATORY: Preserve all section tags like [Verse 1], [Chorus], etc. "
             "Return ONLY the polished lyrics."
         )
         
         response = self.client.models.generate_content(
-            model=MODEL_PRO,
+            model=MODEL_FLASH,
             contents=prompt,
             config=types.GenerateContentConfig(system_instruction=system_instruction, temperature=0.5)
         )
         return response.text
 
-    def sonic_polish(self, lyrics: str) -> str:
+    def sonic_polish(self, lyrics: str, seed: str, rhyme_scheme: str) -> str:
         """Agent E: The Sonic Sculptor - Improves phonetics and removes forced rhymes."""
-        prompt = f"Lyrics to improve:\n{lyrics}\n\nOptimize for phonetic beauty (assonance, consonance) and naturalness."
+        prompt = (
+            f"Seed Prompt: {seed}\n"
+            f"Rhyme Scheme: {rhyme_scheme}\n"
+            f"Lyrics to improve:\n{lyrics}\n\n"
+            "Optimize for phonetic beauty (assonance, consonance) and naturalness."
+        )
         system_instruction = (
             "You are 'The Sonic Sculptor'. Your job is to make the lyrics sound beautiful when sung or spoken. "
             "1. Enhance phonetic patterns (alliteration, assonance) without being overwhelming. "
             "2. LOOSEN strict rhyming. If a rhyme feels forced or cheesy, break it. Prioritize flow and 'mouthfeel'. "
+            "Keep the seed's meaning central; anchors stay subtle. "
+            "Do not break an explicit rhyme scheme if one is specified. "
             "MANDATORY: Preserve all section tags like [Verse 1], [Chorus], etc. "
             "Return ONLY the sculpted lyrics."
         )
         
         response = self.client.models.generate_content(
-            model=MODEL_PRO,
+            model=MODEL_FLASH,
             contents=prompt,
             config=types.GenerateContentConfig(system_instruction=system_instruction, temperature=0.7)
         )
@@ -184,19 +232,19 @@ class AIService:
             yield f"✨ Anchors: {', '.join(anchors)}\n\n"
 
         yield "🏗️ [Architect] Designing structure...\n"
-        outline = self.architect_outline(title, anchors)
+        outline = self.architect_outline(title, seed, anchors)
         
         yield "✍️ [Drafter] Drafting lyrics...\n"
-        raw_draft = self.drafter_write(title, anchors, outline, style, rhyme_scheme)
+        raw_draft = self.drafter_write(title, seed, anchors, outline, style, rhyme_scheme)
         
         yield "✂️ [Editor] Removing clichés...\n"
-        refined = self.editor_refine(raw_draft)
+        refined = self.editor_refine(raw_draft, seed, anchors)
         
         yield "🎵 [Rhythmist] Polishing flow...\n"
-        polished_rhythm = self.rhythmist_polish(refined)
+        polished_rhythm = self.rhythmist_polish(refined, seed, rhyme_scheme)
 
         yield "✨ [Sonic Sculptor] Enhancing phonetics...\n"
-        final_lyrics = self.sonic_polish(polished_rhythm)
+        final_lyrics = self.sonic_polish(polished_rhythm, seed, rhyme_scheme)
         
         yield "\n--- FINAL LYRICS ---\n\n"
         
@@ -213,7 +261,7 @@ class AIService:
         if not self.client: return text
         system_instruction = "Mark stressed syllables with **bold**."
         response = self.client.models.generate_content(
-            model=MODEL_PRO, contents=text,
+            model=MODEL_FLASH, contents=text,
             config=types.GenerateContentConfig(system_instruction=system_instruction)
         )
         return response.text
@@ -222,7 +270,7 @@ class AIService:
         if not self.client: return selection
         system_instruction = f"Context: {original_text}\nRewrite the selection: {selection}\nBased on: {instructions}"
         response = self.client.models.generate_content(
-            model=MODEL_PRO, contents=selection,
+            model=MODEL_FLASH, contents=selection,
             config=types.GenerateContentConfig(system_instruction=system_instruction)
         )
         return response.text

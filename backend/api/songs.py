@@ -72,6 +72,9 @@ def generate_vibe(
     try:
         anchors = ai_service.get_vibe_cloud(prompt)
         song.vibe_cloud = anchors
+        song.content = song.content or {}
+        song.content["seed_prompt"] = prompt
+        song.content = dict(song.content)
         session.add(song)
         session.commit()
         session.refresh(song)
@@ -84,6 +87,7 @@ def stream_lyrics(
     song_id: int,
     style: str = "Modern",
     rhyme_scheme: str = "Free Verse",
+    seed: str | None = None,
     session: Session = Depends(get_session)
 ):
     """
@@ -93,10 +97,9 @@ def stream_lyrics(
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     
-    # Use song title or vibe prompt as seed
-    seed = song.title
-    if song.vibe_cloud:
-        seed += f" ({', '.join(song.vibe_cloud)})"
+    seed_text = (seed or "").strip()
+    if not seed_text:
+        seed_text = (song.content or {}).get("seed_prompt") or song.title
 
     def generator():
         full_output = ""
@@ -105,8 +108,11 @@ def stream_lyrics(
         # Trigger the Lyrics Factory
         # If vibe_cloud exists, we pass it directly to skip regeneration
         anchors = song.vibe_cloud if song.vibe_cloud else None
+        if not anchors:
+            anchors = ai_service.get_vibe_cloud(seed_text)
+            song.vibe_cloud = anchors
         
-        for chunk in ai_service.lyrics_factory_stream(song.title, seed, style, rhyme_scheme, anchors=anchors):
+        for chunk in ai_service.lyrics_factory_stream(song.title, seed_text, style, rhyme_scheme, anchors=anchors):
             if chunk.startswith("__USAGE__:"):
                 try:
                     final_tokens = int(chunk.split(":")[1])
@@ -123,6 +129,7 @@ def stream_lyrics(
         
         # Update DB
         song.content = song.content or {}
+        song.content["seed_prompt"] = seed_text
         song.content["lyrics"] = final_lyrics
         song.content = dict(song.content)
         if final_tokens > 0:

@@ -29,13 +29,13 @@ def test_sonic_polish_integration():
         
         # 1. Verify sequence
         m_scout.assert_called_once()
-        m_architect.assert_called_once()
-        m_drafter.assert_called_once()
-        m_editor.assert_called_once()
-        m_rhythmist.assert_called_once_with(mock_refined)
+        m_architect.assert_called_once_with("Title", "Seed", mock_anchors)
+        m_drafter.assert_called_once_with("Title", "Seed", mock_anchors, mock_outline, "Style", "Rhyme")
+        m_editor.assert_called_once_with(mock_draft, "Seed", mock_anchors)
+        m_rhythmist.assert_called_once_with(mock_refined, "Seed", "Rhyme")
         
         # 2. Verify Sonic Sculptor is called with previous output
-        m_sonic.assert_called_once_with(mock_rhythm)
+        m_sonic.assert_called_once_with(mock_rhythm, "Seed", "Rhyme")
         
         # 3. Verify user feedback in stream
         assert "✨ [Sonic Sculptor] Enhancing phonetics..." in full_text
