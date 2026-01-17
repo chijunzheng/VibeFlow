@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, Song } from "@/lib/api";
-import { Loader2, Sparkles, PenTool } from "lucide-react";
+import { fetchSong, generateVibe, getStreamLyricsUrl, countSyllables, analyzeStress, Song } from "@/lib/api";
+import { Loader2, Sparkles, PenTool, Activity } from "lucide-react";
 
 export default function SongEditor({ params }: { params: Promise<{ id: string }> }) {
   const [songId, setSongId] = useState<number | null>(null);
@@ -22,6 +22,11 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
   const [lyrics, setLyrics] = useState("");
   const [syllableCounts, setSyllableCounts] = useState<number[]>([]);
   const [writingLyrics, setWritingLyrics] = useState(false);
+  
+  // Stress State
+  const [showStress, setShowStress] = useState(false);
+  const [stressContent, setStressContent] = useState("");
+  const [analyzingStress, setAnalyzingStress] = useState(false);
   
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -80,6 +85,7 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     if (!song) return;
     setWritingLyrics(true);
     setLyrics(""); // Clear current lyrics for new stream
+    setShowStress(false); // Reset stress view
     
     try {
       const url = getStreamLyricsUrl(song.id);
@@ -102,7 +108,6 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
         }
       }
       
-      // Refresh song data to get the final saved state
       loadSong(song.id);
       
     } catch (err) {
@@ -111,6 +116,37 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
     } finally {
       setWritingLyrics(false);
     }
+  };
+  
+  const handleToggleStress = async () => {
+    if (showStress) {
+      setShowStress(false);
+      return;
+    }
+    
+    if (!lyrics) return;
+    
+    setAnalyzingStress(true);
+    try {
+      const stressText = await analyzeStress(lyrics);
+      setStressContent(stressText);
+      setShowStress(true);
+    } catch (err) {
+      alert("Failed to analyze stress");
+    } finally {
+      setAnalyzingStress(false);
+    }
+  };
+  
+  // Simple renderer for **bold** text
+  const renderStressContent = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="text-violet-300 font-bold">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
   };
 
   if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
@@ -168,14 +204,28 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
               <PenTool size={18} />
               <h2>Lyrics</h2>
             </div>
-            <button
-              onClick={handleWriteLyrics}
-              disabled={writingLyrics || !song.vibe_cloud?.length}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              {writingLyrics ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-              Ghostwrite
-            </button>
+            <div className="flex gap-2">
+                <button
+                  onClick={handleToggleStress}
+                  disabled={analyzingStress || !lyrics}
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2 ${
+                    showStress 
+                      ? "bg-violet-600 text-white" 
+                      : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                  }`}
+                >
+                  {analyzingStress ? <Loader2 size={12} className="animate-spin" /> : <Activity size={12} />}
+                  Stress
+                </button>
+                <button
+                  onClick={handleWriteLyrics}
+                  disabled={writingLyrics || !song.vibe_cloud?.length}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {writingLyrics ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  Ghostwrite
+                </button>
+            </div>
           </div>
 
           <div className="flex-1 relative flex overflow-hidden">
@@ -186,12 +236,19 @@ export default function SongEditor({ params }: { params: Promise<{ id: string }>
                   </div>
                 ))}
              </div>
-             <textarea
-                className="flex-1 bg-slate-950/50 border-none rounded-r-lg p-4 text-slate-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
-                placeholder="Start writing..."
-                value={lyrics}
-                onChange={(e) => setLyrics(e.target.value)}
-              />
+             
+             {showStress ? (
+                 <div className="flex-1 bg-slate-950/50 border-none rounded-r-lg p-4 text-slate-300 font-mono text-sm overflow-y-auto leading-relaxed whitespace-pre-wrap">
+                    {renderStressContent(stressContent)}
+                 </div>
+             ) : (
+                 <textarea
+                    className="flex-1 bg-slate-950/50 border-none rounded-r-lg p-4 text-slate-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
+                    placeholder="Start writing..."
+                    value={lyrics}
+                    onChange={(e) => setLyrics(e.target.value)}
+                  />
+             )}
           </div>
         </div>
       </div>

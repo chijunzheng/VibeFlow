@@ -60,31 +60,40 @@ def test_generate_vibe_song_not_found(client: TestClient):
         )
         assert response.status_code == 404
 
-def test_write_lyrics(client: TestClient):
-    """Test writing lyrics for a song."""
+def test_stream_lyrics(client: TestClient):
+    """Test streaming lyrics for a song."""
     # Create song
     response = client.post("/songs/", json={"title": "Neon City"})
     song_id = response.json()["id"]
     
-    # Manually set vibe cloud (simulating previous step)
-    # We can use the API or just mock the state if we had direct DB access, but API is better integration test
-    # We'll use the API but mock the AI
-    mock_anchors = ["Neon lights", "Wet pavement", "Sirens", "Smoke", "Buzz"]
+    # Mock vibe cloud
+    mock_anchors = ["Neon", "Light"]
     with patch("backend.ai.ai_service.get_vibe_cloud", return_value=mock_anchors):
         client.post(f"/songs/{song_id}/generate_vibe", json={"prompt": "Neon"})
 
-    mock_lyrics = "[Verse]\nWalking down the street...\n[Chorus]\nNeon lights..."
+    mock_chunks = ["Verse 1", "\nWalking", " down"]
     
-    with patch("backend.ai.ai_service.write_lyrics", return_value=mock_lyrics) as mock_write:
+    with patch("backend.ai.ai_service.stream_lyrics", return_value=iter(mock_chunks)) as mock_stream:
+        response = client.get(f"/songs/{song_id}/write_lyrics/stream")
+        
+        assert response.status_code == 200
+        # Consuming the stream
+        content = b"".join(response.iter_bytes())
+        assert content.decode("utf-8") == "Verse 1\nWalking down"
+        
+        mock_stream.assert_called_once()
+
+def test_get_stress_patterns(client: TestClient):
+    """Test stress pattern analysis."""
+    mock_response = "I **walked** down **emp**ty **streets**"
+    
+    with patch("backend.ai.ai_service.get_stress_patterns", return_value=mock_response) as mock_stress:
         response = client.post(
-            f"/songs/{song_id}/write_lyrics",
-            json={"style": "Cyberpunk"}
+            "/utils/stress",
+            json={"text": "I walked down empty streets"}
         )
         
-        data = response.json()
         assert response.status_code == 200
-        assert data["content"]["lyrics"] == mock_lyrics
-        
-        # Verify call
-        mock_write.assert_called_once_with("Neon City", mock_anchors, "Cyberpunk")
+        assert response.json() == mock_response
+        mock_stress.assert_called_once_with("I walked down empty streets")
 

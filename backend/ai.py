@@ -89,4 +89,37 @@ class AIService:
             logger.error(f"Error streaming lyrics: {str(e)}")
             raise e
 
+    def get_stress_patterns(self, text: str) -> str:
+        """
+        Marks stressed syllables in bold (markdown style) using Gemini Flash.
+        Example: "I **walked** down **emp**ty **streets**"
+        """
+        if not self.client:
+            raise Exception("Gemini API Key not configured")
+
+        if not text.strip():
+            return ""
+
+        system_instruction = (
+            "You are a prosody expert. Analyze the provided lyrics and mark the stressed syllables by wrapping them in double asterisks (**bold**). "
+            "Do not change any words or punctuation. Only add asterisks around the stressed syllables. "
+            "Example Input: 'I walked down empty streets' "
+            "Example Output: 'I **walked** down **emp**ty **streets**' "
+            "Maintain the original line breaks."
+        )
+
+        try:
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash-exp",
+                contents=text,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.0
+                )
+            )
+            return response.text if response.text else text
+        except Exception as e:
+            logger.error(f"Error analyzing stress: {str(e)}")
+            raise e
+
 ai_service = AIService()

@@ -64,3 +64,13 @@ export async function countSyllables(text: string): Promise<number[]> {
   if (!res.ok) throw new Error("Failed to count syllables");
   return res.json();
 }
+
+export async function analyzeStress(text: string): Promise<string> {
+  const res = await fetch(`${API_URL}/utils/stress`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  if (!res.ok) throw new Error("Failed to analyze stress");
+  return res.json();
+}

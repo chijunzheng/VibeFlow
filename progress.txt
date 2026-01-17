@@ -1,31 +1,30 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T12:00:00Z
+Last Updated: 2026-01-16T12:15:00Z
 
-## Session: Implementation of Syllable Counter
+## Session: Implementation of Syllable Counter & Streaming
 
 ### Completed
 - Feature F004: Syllable Counter
-  - Integrated `syllapy` on the backend.
-  - Exposed `POST /utils/syllables` for line-by-line counting.
-  - Implemented real-time updates in the frontend editor with a debounced API call.
-  - Added visual syllable counts in the editor gutter.
+- Feature F025: Stream Response
+  - Backend `AIService` now supports `stream_lyrics`.
+  - Frontend editor now streams lyrics in real-time, providing immediate feedback to the user.
+  - Syllable counts update as the AI writes (due to the lyrics change trigger).
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Handled backend logic and API creation.
-  - Developed frontend integration for real-time feedback.
-  - Resolved `pkg_resources` dependency issue by installing `setuptools`.
+  - Implemented streaming logic on both backend and frontend.
+  - Integrated the streaming response into the existing SongEditor.
 
 ### Context for Next Agent
 - **Priority:**
-  - F025: Stream Response - Crucial for the "Ghostwriter" feel.
-  - F005: Stress Highlighting - Poetic analysis.
+  - F005: Stress Highlighting - Last major AI poetic feature.
+  - F011: Auto-Save - Ensure manual edits are persisted.
 - **Notes:**
-  - `syllapy` counts can vary; tests are adjusted to match library behavior.
-  - Frontend editor now has a basic gutter for counts.
+  - Streaming uses `text/plain` for simplicity.
+  - The `loadSong` call after streaming ensures the frontend is in sync with the final persisted state in the DB.
 
 ## File Summary
-- backend/utils.py: Syllable counting logic
-- backend/api/utils.py: Utils router
-- frontend/src/app/songs/[id]/page.tsx: Editor with gutter
+- backend/ai.py: Added streaming support
+- backend/api/songs.py: Added streaming endpoint
+- frontend/src/app/songs/[id]/page.tsx: Implemented stream consumption
