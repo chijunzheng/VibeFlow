@@ -1,40 +1,32 @@
 === TDD Progress Report ===
 Project: VibeFlow Studio (Local Lite)
-Last Updated: 2026-01-16T11:00:00Z
+Last Updated: 2026-01-16T11:15:00Z
 
-## Session: Implementation of Core Features
+## Session: Implementation of Core AI Features
 
 ### Completed
 - Feature F024: API Key Config (Backend)
-  - Implemented Settings with pydantic-settings
-  - Added backend/config.py, backend/main.py
-  - Verified with tests/test_config.py
 - Feature F001: Create New Song (Backend)
-  - Implemented Song model using SQLModel
-  - Added SQLite database connection
-  - Created POST /songs/ and GET /songs/ endpoints
-  - Added CORS support for Frontend
-  - Verified with tests/test_songs.py
+- Feature F002: Generate Vibe Cloud (Backend)
+  - Implemented `backend/ai.py` with `AIService` using `google-genai`
+  - Added `POST /songs/{id}/generate_vibe` endpoint
+  - Mocked and tested AI integration in `tests/test_ai.py`
 
 ### Sub-Agent Handoffs
 - Coder (Self-Simulated):
-  - Implemented backend structure, config, DB, and Song API.
-  - Added tests and verified passing.
-- Code-Review (Self-Simulated):
-  - Verified code quality and security (no hardcoded keys).
+  - Implemented AI service and integrated with Song API.
+  - Used Gemini Flash model for vibe generation.
+  - Added tests mocking the AI service.
 
 ### Context for Next Agent
 - **Priority:**
-  - F002 (Generate Vibe Cloud) - Depends on Google GenAI integration.
   - F016 (Sidebar Navigation) - Start Frontend implementation.
+  - F003 (Draft Lyrics - Ghostwriter) - Next AI feature using Gemini Pro.
 - **Notes:**
-  - Backend is running on port 8000.
-  - Frontend is on port 3000 (scaffolded but not connected yet).
-  - Database is at `storage/vibeflow.db`.
-  - API Key is expected in `.env` or env var `GEMINI_API_KEY`.
+  - AI Service assumes `gemini-2.0-flash-exp` model. Change in `backend/ai.py` if needed.
+  - Frontend still needs to be connected.
 
 ## File Summary
-- backend/models.py: Song model
-- backend/api/songs.py: Song endpoints
-- backend/config.py: Settings
-- tests/: Tests for config and songs
+- backend/ai.py: AI Service
+- backend/api/songs.py: Song endpoints (updated)
+- tests/test_ai.py: AI tests
